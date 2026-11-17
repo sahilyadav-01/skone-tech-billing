@@ -13,11 +13,19 @@
 <body>
   <section class="auth-screen" id="authScreen">
     <div class="auth-showcase">
-      <img src="assets/skone-logo.webp" alt="SKONE Tech Support">
-      <span class="auth-pill">SECURE BUSINESS BILLING</span>
-      <h1>Your company. Your customers. Your invoices.</h1>
-      <p>Sign in to access a private billing workspace for your company from any device.</p>
-      <div class="auth-benefits"><span>Company-isolated data</span><span>Secure cloud backup</span><span>Branded GST invoices</span></div>
+      <div class="auth-brand-head">
+        <img src="assets/skone-logo.webp" alt="SKONE Tech Support">
+      </div>
+      <div class="auth-hero-content">
+        <span class="auth-pill">SECURE BUSINESS BILLING</span>
+        <h1>Your company. Your customers. Your invoices.</h1>
+        <p>Sign in to access a private billing workspace for your company from any device.</p>
+      </div>
+      <div class="auth-benefits">
+        <span>✓ Company-isolated data</span>
+        <span>✓ Secure cloud backup</span>
+        <span>✓ Branded GST invoices</span>
+      </div>
     </div>
     <div class="auth-panel">
       <div class="auth-card">
@@ -31,21 +39,21 @@
         <form id="authForm">
           <label class="company-field" id="companyField">Company name<input id="authCompany" autocomplete="organization" placeholder="Your company name"></label>
           <label>Email address<input id="authEmail" type="email" autocomplete="email" required placeholder="you@company.com"></label>
-          <label>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span>Password</span>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+              <label for="authPassword" style="margin:0;font-weight:600;font-size:12px;color:#56645e">Password</label>
               <button type="button" id="togglePasswordBtn" class="toggle-pass-btn">Show</button>
             </div>
             <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Minimum 6 characters">
-          </label>
+          </div>
           <div class="auth-options">
             <button type="button" class="text-link" id="forgotPasswordBtn">Forgot password?</button>
           </div>
           <button class="primary full auth-submit" id="authSubmit" type="submit">Sign in</button>
         </form>
-        <p class="auth-message" id="authMessage" role="status"></p>
+        <div class="auth-message" id="authMessage" role="status"></div>
         <div class="auth-divider"><span>OR</span></div>
-        <button type="button" class="offline-btn" id="guestLoginBtn">Continue in Offline / Local Mode</button>
+        <button type="button" class="offline-btn" id="guestLoginBtn">⚡ Enter Workspace (Instant / Local Mode)</button>
         <p class="auth-legal">By continuing, you agree to keep your account credentials secure.</p>
       </div>
     </div>
