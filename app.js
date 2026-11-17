@@ -270,17 +270,17 @@ function printInvoice(id){
     ? `<img src="${biz.logo}" alt="${esc(biz.name)}" style="max-height:55px;max-width:180px;object-fit:contain;margin-bottom:8px;display:block">`
     : `<div class="brand" style="font-size:22px;margin-bottom:8px">${esc(biz.name)}</div>`;
   w.document.write(`<!doctype html><html><head><title>${esc(i.number)}</title><style>
-    body{font:14px Arial,sans-serif;color:#0f172a;padding:40px;max-width:800px;margin:auto}
-    header{display:flex;justify-content:space-between;border-bottom:3px solid #0a172c;padding-bottom:20px;gap:20px}
-    .brand{font-size:24px;font-weight:bold;color:#0a172c}
+    body{font:14px Arial,sans-serif;color:#0f382a;padding:40px;max-width:800px;margin:auto}
+    header{display:flex;justify-content:space-between;border-bottom:3px solid #059669;padding-bottom:20px;gap:20px}
+    .brand{font-size:24px;font-weight:bold;color:#059669}
     .provider-details{font-size:12px;color:#333;margin-top:6px;line-height:1.5}
     table{width:100%;border-collapse:collapse;margin:30px 0}
     th,td{padding:11px;text-align:left;border-bottom:1px solid #ddd}
-    th{background:#f1f5f9}
+    th{background:#ecfdf5;color:#065f46}
     .right{text-align:right}
-    .total{font-size:22px;color:#0a172c}
-    .bank-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin:24px 0;font-size:12px}
-    .bank-box h4{margin:0 0 8px;color:#0a172c;font-size:12px;text-transform:uppercase;letter-spacing:.8px}
+    .total{font-size:22px;color:#059669}
+    .bank-box{background:#f4faf6;border:1px solid #dcf0e4;border-radius:8px;padding:12px 16px;margin:24px 0;font-size:12px}
+    .bank-box h4{margin:0 0 8px;color:#059669;font-size:12px;text-transform:uppercase;letter-spacing:.8px}
     .bank-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
     footer{margin-top:30px;color:#68756f;text-align:center;font-size:12px;border-top:1px solid #eee;padding-top:15px}
   </style></head><body>
