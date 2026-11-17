@@ -29,4 +29,61 @@ function renderInvoices(filter=''){const h=$('#invoiceList'),list=state.invoices
 $('#invoiceSearch').oninput=e=>renderInvoices(e.target.value);
 function printInvoice(id){const i=state.invoices.find(x=>x.id===id),c=state.customers.find(x=>x.id===i.customerId),w=window.open('','_blank');w.document.write(`<title>${i.number}</title><style>body{font:14px Arial;color:#17241f;padding:40px;max-width:800px;margin:auto}header{display:flex;justify-content:space-between;border-bottom:3px solid #12372a;padding-bottom:20px}.brand{font-size:24px;font-weight:bold;color:#12372a}table{width:100%;border-collapse:collapse;margin:30px 0}th,td{padding:11px;text-align:left;border-bottom:1px solid #ddd}th{background:#eef5f0}.right{text-align:right}.total{font-size:22px;color:#12372a}footer{margin-top:50px;color:#68756f}</style><header><div><div class="brand">SK ONE TECH SUPPORT</div><p>Computer repair • IT support • Technology solutions</p></div><div class="right"><h2>TAX INVOICE</h2><b>${i.number}</b><br>${new Date(i.date+'T00:00:00').toLocaleDateString('en-IN')}</div></header><h3>Bill to</h3><b>${esc(c?.name||'Customer')}</b><p>${esc(c?.address||'')}<br>${esc(c?.phone||'')} ${c?.gstin?'• GSTIN: '+esc(c.gstin):''}</p><table><thead><tr><th>Item / service</th><th>Qty</th><th>Rate</th><th>GST</th><th class="right">Amount</th></tr></thead><tbody>${i.lines.map(l=>`<tr><td>${esc(l.description)}</td><td>${l.qty}</td><td>${money(l.rate)}</td><td>${l.tax}%</td><td class="right">${money(lineCalc(l).total)}</td></tr>`).join('')}</tbody></table><div class="right"><p>Subtotal: ${money(i.totals.subtotal)}<br>Discount: ${money(i.totals.discount)}<br>GST: ${money(i.totals.tax)}</p><h2 class="total">Total: ${money(i.totals.total)}</h2><p>Status: <b>${i.status}</b></p></div><footer>${esc(i.notes||'Thank you for choosing SK One Tech Support.')}</footer>`);w.document.close();setTimeout(()=>w.print(),300)}
 function renderDashboard(){const total=state.invoices.reduce((a,i)=>a+i.totals.total,0),pending=state.invoices.filter(i=>i.status!=='Paid'),month=new Date().toISOString().slice(0,7),monthInv=state.invoices.filter(i=>i.date.startsWith(month));$('#totalRevenue').textContent=money(total);$('#pendingRevenue').textContent=money(pending.reduce((a,i)=>a+i.totals.total,0));$('#pendingCount').textContent=`${pending.length} unpaid invoice${pending.length===1?'':'s'}`;$('#customerCount').textContent=state.customers.length;$('#monthRevenue').textContent=money(monthInv.reduce((a,i)=>a+i.totals.total,0));$('#monthCount').textContent=`${monthInv.length} invoice${monthInv.length===1?'':'s'} issued`;const h=$('#recentInvoices');if(!state.invoices.length){h.className='empty-state';h.innerHTML='<b>No invoices yet</b><span>Create an invoice and it will appear here.</span>'}else{h.className='card-list';h.innerHTML=state.invoices.slice(0,5).map(i=>{const c=state.customers.find(x=>x.id===i.customerId);return `<div class="list-row"><div><strong>${i.number} · ${esc(c?.name||'Customer')}</strong><small>${new Date(i.date+'T00:00:00').toLocaleDateString('en-IN')}</small></div><div class="row-actions">${badge(i.status)}<b>${money(i.totals.total)}</b></div></div>`}).join('')}}
-renderDashboard();renderCustomers();renderItems();
+const BUSINESS={
+  name:"S'K One Tech Support",
+  address:'025, Yadav Niwas, Block A, Vpo. PALWA, ALWAR, RAJASTHAN-301706',
+  gstin:'08BNBPY5978C1ZH',
+  owner:'SAHIL YADAV',
+  phone:'8290500635',
+  bank:'STATE BANK OF INDIA',
+  branch:'PALAVA, ALWAR',
+  account:'45126444407',
+  ifsc:'SBIN0032434'
+};
+
+function numberWords(value){
+  const ones=['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  const underThousand=n=>{const out=[];if(n>=100){out.push(ones[Math.floor(n/100)],'Hundred');n%=100}if(n>=20){out.push(tens[Math.floor(n/10)]);n%=10}if(n)out.push(ones[n]);return out.join(' ')};
+  let n=Math.round(Number(value)||0);if(!n)return 'Rupees Zero Only';const out=[];
+  [[10000000,'Crore'],[100000,'Lakh'],[1000,'Thousand']].forEach(([d,label])=>{if(n>=d){const q=Math.floor(n/d);n%=d;out.push(underThousand(q),label)}});
+  if(n)out.push(underThousand(n));return `Rupees ${out.join(' ')} Only`;
+}
+
+function logoDataUrl(){
+  return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;canvas.getContext('2d').drawImage(img,0,0);resolve(canvas.toDataURL('image/png'))};img.onerror=reject;img.src='assets/skone-logo.webp'});
+}
+
+function currentDraftInvoice(){
+  calcTotals();
+  return {number:$('#invoiceNo').value,date:$('#invoiceDate').value,place:$('#placeSupply').value,status:$('#paymentStatus').value,notes:$('#invoiceNotes').value,lines:draft.lines.map(x=>({...x})),totals:{...draft.totals}};
+}
+
+async function downloadInvoicePdf(invoice,customer){
+  if(!window.jspdf?.jsPDF)return toast('PDF library could not load. Check your internet connection.');
+  if(!invoice.lines?.some(line=>Number(line.rate)>0))return toast('Add an item with a price');
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'}),ink=[16,27,49],muted=[86,101,122],line=[203,213,225],soft=[241,245,249];
+  const right=196;let y=12;
+  try{doc.addImage(await logoDataUrl(),'PNG',14,y,54,21)}catch{doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('SKONE TECH SUPPORT',14,y+10)}
+  doc.setTextColor(...ink);doc.setFont('helvetica','bold');doc.setFontSize(22);doc.text('TAX INVOICE',right,y+9,{align:'right'});doc.setFontSize(8);doc.text('ORIGINAL FOR RECIPIENT',right,y+15,{align:'right'});y=38;
+  doc.setDrawColor(...ink);doc.setLineWidth(.7);doc.line(14,y,right,y);y+=5;
+  const bar=title=>{doc.setFillColor(...soft);doc.setDrawColor(...line);doc.rect(14,y,182,8,'FD');doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(title,17,y+5.3);y+=8};
+  const wrapped=(text,width)=>doc.splitTextToSize(String(text||''),width);
+  bar('PROVIDER DETAILS');doc.setDrawColor(...line);doc.rect(14,y,182,25);doc.line(126,y,126,y+25);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(BUSINESS.name,17,y+6);doc.setFont('helvetica','normal');doc.text(wrapped(`ADDRESS: ${BUSINESS.address}`,105),17,y+11);doc.text(`GSTIN/UIN: ${BUSINESS.gstin}`,17,y+21);doc.text(`NAME: ${BUSINESS.owner}`,129,y+7);doc.text(`PH-#: ${BUSINESS.phone}`,129,y+13);y+=30;
+  doc.setFillColor(...soft);doc.rect(14,y,82,8,'F');doc.rect(96,y,100,8,'F');doc.rect(14,y,182,47);doc.line(96,y,96,y+47);doc.line(14,y+8,196,y+8);doc.setFont('helvetica','bold');doc.text('INVOICE & PAYMENT METADATA',17,y+5.3);doc.text('BILL TO (CUSTOMER DETAILS)',99,y+5.3);doc.setFont('helvetica','normal');doc.text(`Invoice No.: ${invoice.number}`,17,y+14);doc.text(`Dated: ${new Date(invoice.date+'T00:00:00').toLocaleDateString('en-GB')}`,17,y+20);doc.text('Payment Terms: Due upon receipt',17,y+26);doc.text(`Place of Supply: ${invoice.place||''}`,17,y+32);doc.setFont('helvetica','bold');doc.text(`Total Amount Due: INR ${Number(invoice.totals.total).toFixed(2)}`,17,y+41);doc.text(wrapped(`Bill To: ${customer?.name||'Customer'}`,92),99,y+14);doc.setFont('helvetica','normal');doc.text(wrapped(`Address: ${customer?.address||''}`,92),99,y+20);doc.text(`GSTIN: ${customer?.gstin||'-'}`,99,y+33);doc.text(`Phone: ${customer?.phone||'-'}`,99,y+39);y+=52;
+  const cols=[14,40,126,144,169,196];doc.setFillColor(...ink);doc.rect(14,y,182,9,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('Date',17,y+6);doc.text('Description',43,y+6);doc.text('Qty',135,y+6,{align:'center'});doc.text('Rate',166,y+6,{align:'right'});doc.text('Amount',193,y+6,{align:'right'});y+=9;doc.setTextColor(...ink);doc.setFont('helvetica','normal');
+  invoice.lines.forEach((item,index)=>{const calc=lineCalc(item),desc=wrapped(item.description||'Item / service',80),h=Math.max(13,desc.length*4.2+5);doc.setDrawColor(...line);doc.rect(14,y,182,h);cols.slice(1,-1).forEach(x=>doc.line(x,y,x,y+h));if(index===0)doc.text(new Date(invoice.date+'T00:00:00').toLocaleDateString('en-GB'),17,y+6);doc.setFont('helvetica','bold');doc.text(desc,43,y+6);doc.setFont('helvetica','normal');doc.text(String(item.qty),135,y+6,{align:'center'});doc.text(Number(item.rate).toFixed(2),166,y+6,{align:'right'});doc.text(`INR ${calc.base.toFixed(2)}`,193,y+6,{align:'right'});doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`GST ${item.tax}%`,43,y+h-3);doc.setFontSize(8);doc.setTextColor(...ink);y+=h});
+  const summary=[['Subtotal',invoice.totals.subtotal],['Discount',-invoice.totals.discount],['GST',invoice.totals.tax]];summary.forEach(([label,value])=>{doc.setDrawColor(...line);doc.rect(126,y,70,7);doc.text(label,129,y+4.8);doc.text(`INR ${Number(value).toFixed(2)}`,193,y+4.8,{align:'right'});y+=7});doc.setFillColor(...soft);doc.setDrawColor(...ink);doc.rect(14,y,182,10,'FD');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Total Amount Due',43,y+6.7);doc.text(`INR ${Number(invoice.totals.total).toFixed(2)}`,193,y+6.7,{align:'right'});y+=15;
+  doc.setFontSize(8);bar('PAYMENT & SETTLEMENT SUMMARY');const rows=[['Total Amount (In Words)',numberWords(invoice.totals.total)],['Bank Name',BUSINESS.bank],['Branch',BUSINESS.branch],['Account No',BUSINESS.account],['IFSC Code',BUSINESS.ifsc]];rows.forEach(([label,value])=>{doc.setDrawColor(...line);doc.rect(14,y,182,8);doc.line(75,y,75,y+8);doc.setFont('helvetica','bold');doc.text(label,17,y+5.3);doc.setFont('helvetica','normal');doc.text(value,78,y+5.3);y+=8});
+  doc.setFont('helvetica','italic');doc.setTextColor(...muted);doc.text(invoice.notes||'Thanks for letting us serve you!',105,Math.min(y+10,278),{align:'center'});doc.setDrawColor(...line);doc.line(14,287,196,287);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(`${BUSINESS.name} - Invoice ${invoice.number}`,14,292);doc.text('Page 1 of 1',196,292,{align:'right'});
+  doc.save(`${String(invoice.number||'invoice').replaceAll('/','-')}.pdf`);toast('Invoice PDF downloaded');
+}
+
+$('#downloadDraft').onclick=()=>{const invoice=currentDraftInvoice(),customer=state.customers.find(x=>x.id===$('#invoiceCustomer').value);downloadInvoicePdf(invoice,customer)};
+
+function addSavedDownloadButtons(){
+  $$('[data-print]').forEach(printButton=>{if(printButton.parentElement.querySelector(`[data-download="${printButton.dataset.print}"]`))return;const button=document.createElement('button');button.className='mini-btn';button.dataset.download=printButton.dataset.print;button.textContent='Download PDF';button.onclick=()=>{const invoice=state.invoices.find(x=>x.id===button.dataset.download),customer=state.customers.find(x=>x.id===invoice.customerId);downloadInvoicePdf(invoice,customer)};printButton.before(button)})
+}
+new MutationObserver(addSavedDownloadButtons).observe($('#invoiceList'),{childList:true,subtree:true});
+
+renderDashboard();renderCustomers();renderItems();addSavedDownloadButtons();
