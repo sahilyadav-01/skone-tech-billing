@@ -75,3 +75,7 @@ Copyright © 2026 SK One Tech Support. All rights reserved.
 Developed by Sahil Yadav.
 
 This software and its source code may not be copied, modified, distributed, or used commercially without prior written permission from SK One Tech Support.
+
+## License
+
+This project is proprietary software. See [LICENSE](LICENSE) for the complete terms.
