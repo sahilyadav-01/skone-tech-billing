@@ -1,6 +1,6 @@
 (function(){
   const pendingCompanyKey='skonePendingCompany';
-  let client=null,company=null,user=null;
+  let client=null,company=null,user=null,companies=[],role='member';
   let resolveCompany;
   const companyReady=new Promise(resolve=>{resolveCompany=resolve});
 
@@ -31,10 +31,10 @@
     message('');
   }
 
-  async function getMembership(){
-    const {data,error}=await client.from('company_members').select('company_id,role').eq('user_id',user.id).maybeSingle();
+  async function getMemberships(){
+    const {data,error}=await client.from('company_members').select('company_id,role,companies(*)').eq('user_id',user.id).order('created_at');
     if(error)throw error;
-    return data;
+    return data||[];
   }
 
   async function provisionCompany(name){
@@ -44,23 +44,68 @@
     return data;
   }
 
+  function renderCompanyContext(){
+    el('companyName').textContent=company.name;
+    el('accountEmail').textContent=user.email||'';
+    const switcher=el('companySwitcher');
+    switcher.innerHTML=companies.map(item=>`<option value="${item.company.id}" ${item.company.id===company.id?'selected':''}>${item.company.name}</option>`).join('');
+    switcher.onchange=()=>switchCompany(switcher.value);
+  }
+
+  async function loadCompanies(){
+    const memberships=await getMemberships();
+    companies=memberships.filter(item=>item.companies).map(item=>({company:item.companies,role:item.role}));
+    return companies;
+  }
+
   async function enterWorkspace(session,requestedCompany=''){
     user=session.user;
-    let membership=await getMembership();
-    if(!membership){
+    let memberships=await loadCompanies();
+    if(!memberships.length){
       const companyName=requestedCompany||localStorage.getItem(pendingCompanyKey);
       if(!companyName)throw new Error('No company workspace is linked to this account. Create a new account with a company name.');
       await provisionCompany(companyName);
-      membership=await getMembership();
+      memberships=await loadCompanies();
     }
-    const {data:companyRow,error}=await client.from('companies').select('id,name').eq('id',membership.company_id).single();
-    if(error)throw error;
-    company=companyRow;
+    const activeKey=`skoneActiveCompany:${user.id}`;
+    const requestedId=localStorage.getItem(activeKey);
+    const active=memberships.find(item=>item.company.id===requestedId)||memberships[0];
+    company=active.company;
+    role=active.role;
+    localStorage.setItem(activeKey,company.id);
     el('authScreen').classList.add('is-hidden');
     el('appShell').classList.remove('is-hidden');
-    el('companyName').textContent=company.name;
-    el('accountEmail').textContent=user.email||'';
-    resolveCompany({company,user,role:membership.role});
+    renderCompanyContext();
+    resolveCompany({company,user,role,companies});
+  }
+
+  async function createCompany(name){
+    const clean=String(name||'').trim();
+    if(clean.length<2)throw new Error('Enter a valid company name.');
+    const id=await provisionCompany(clean);
+    localStorage.setItem(`skoneActiveCompany:${user.id}`,id);
+    location.reload();
+  }
+
+  function switchCompany(id){
+    if(!companies.some(item=>item.company.id===id))return;
+    localStorage.setItem(`skoneActiveCompany:${user.id}`,id);
+    location.reload();
+  }
+
+  async function updateCompany(profile){
+    if(!['owner','admin'].includes(role))throw new Error('Only an owner or admin can edit the company profile.');
+    const allowed=['name','legal_name','gstin','phone','email','address','invoice_prefix','bank_name','bank_branch','bank_account','bank_ifsc','logo_data'];
+    const payload=Object.fromEntries(allowed.map(key=>[key,profile[key]??null]));
+    payload.name=String(payload.name||'').trim();
+    payload.invoice_prefix=String(payload.invoice_prefix||'INV').trim().toUpperCase();
+    const {data,error}=await client.from('companies').update(payload).eq('id',company.id).select().single();
+    if(error)throw error;
+    company=data;
+    const active=companies.find(item=>item.company.id===company.id);
+    if(active)active.company=company;
+    renderCompanyContext();
+    return company;
   }
 
   async function handleAuth(event){
@@ -135,5 +180,5 @@
     location.reload();
   }
 
-  window.billingBackend={ready:init(),waitForCompany:()=>companyReady,loadState,saveState,signOut,get company(){return company},get user(){return user}};
+  window.billingBackend={ready:init(),waitForCompany:()=>companyReady,loadState,saveState,signOut,createCompany,switchCompany,updateCompany,get company(){return company},get companies(){return companies},get role(){return role},get user(){return user}};
 })();

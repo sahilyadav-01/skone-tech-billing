@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="brand-fix.css">
   <link rel="stylesheet" href="auth.css">
+  <link rel="stylesheet" href="company.css">
 </head>
 <body>
   <section class="auth-screen" id="authScreen">
@@ -50,9 +51,13 @@
         <button class="nav-item" data-view="invoices"><span>▤</span> Invoices</button>
         <button class="nav-item" data-view="customers"><span>♙</span> Customers</button>
         <button class="nav-item" data-view="items"><span>◇</span> Items & Services</button>
+        <button class="nav-item" data-view="company"><span>⚙</span> Company Profile</button>
       </nav>
       <div class="sidebar-foot">
         <span class="status-dot"></span> Synced with Supabase
+        <label class="company-switch-label" for="companySwitcher">Active company</label>
+        <select id="companySwitcher" class="company-switcher" aria-label="Switch company"></select>
+        <button class="add-company-link" id="addCompanyBtn" type="button">＋ Add company</button>
         <strong id="companyName">Company workspace</strong>
         <small id="accountEmail"></small>
         <button class="sign-out" id="signOutBtn" type="button">Sign out</button>
@@ -130,7 +135,62 @@
           <div class="panel"><div class="panel-head"><div><h3>Items & services</h3><p>Your reusable catalogue</p></div></div><div id="itemList" class="card-list"></div></div>
         </div>
       </section>
+      <section class="view" id="company">
+        <div class="company-page-head">
+          <div><span class="pill dark">COMPANY SETTINGS</span><h2>Company profile</h2><p>These details appear on invoices for the selected company.</p></div>
+          <span class="role-badge" id="companyRole">OWNER</span>
+        </div>
+        <div class="company-layout">
+          <form class="panel company-profile-form" id="companyProfileForm">
+            <div class="profile-section">
+              <div class="logo-editor">
+                <img id="companyLogoPreview" src="assets/skone-logo.webp" alt="Company logo preview">
+                <div><label class="upload-button" for="companyLogo">Choose logo</label><input id="companyLogo" type="file" accept="image/png,image/jpeg,image/webp" hidden><small>PNG, JPG or WebP. Maximum 500 KB.</small><button class="text-btn remove-logo" id="removeCompanyLogo" type="button">Use default logo</button></div>
+              </div>
+            </div>
+            <div class="profile-section">
+              <h3>Business details</h3>
+              <div class="profile-grid">
+                <label>Display name<input id="profileName" required maxlength="120"></label>
+                <label>Legal name<input id="profileLegalName" maxlength="160"></label>
+                <label>GSTIN<input id="profileGstin" maxlength="15" placeholder="08ABCDE1234F1Z5"></label>
+                <label>Invoice prefix<input id="profileInvoicePrefix" maxlength="12" placeholder="INV"></label>
+                <label>Phone<input id="profilePhone" autocomplete="tel"></label>
+                <label>Email<input id="profileEmail" type="email" autocomplete="email"></label>
+                <label class="wide">Business address<textarea id="profileAddress" rows="3"></textarea></label>
+              </div>
+            </div>
+            <div class="profile-section">
+              <h3>Bank details</h3>
+              <div class="profile-grid">
+                <label>Bank name<input id="profileBankName"></label>
+                <label>Branch<input id="profileBankBranch"></label>
+                <label>Account number<input id="profileBankAccount"></label>
+                <label>IFSC code<input id="profileBankIfsc" maxlength="11"></label>
+              </div>
+            </div>
+            <button class="primary save-profile" id="saveCompanyProfile" type="submit">Save company profile</button>
+            <p class="profile-message" id="profileMessage" role="status"></p>
+          </form>
+          <aside class="panel company-help">
+            <h3>Multiple companies</h3>
+            <p>One login can manage separate companies. Customers, items and invoices remain isolated for each company.</p>
+            <ol><li>Add a company from the sidebar.</li><li>Complete its business profile.</li><li>Use the switcher to move between workspaces.</li></ol>
+          </aside>
+        </div>
+      </section>
     </main>
+  </div>
+  <div class="company-modal is-hidden" id="companyModal" role="dialog" aria-modal="true" aria-labelledby="companyModalTitle">
+    <form class="company-modal-card" id="createCompanyForm">
+      <button class="modal-close" id="closeCompanyModal" type="button" aria-label="Close">×</button>
+      <p class="auth-kicker">NEW WORKSPACE</p>
+      <h2 id="companyModalTitle">Add another company</h2>
+      <p>It will have its own customers, catalogue and invoices.</p>
+      <label>Company name<input id="newCompanyName" required minlength="2" maxlength="120" placeholder="Company name"></label>
+      <button class="primary full" id="createCompanySubmit" type="submit">Create company</button>
+      <p class="profile-message" id="createCompanyMessage" role="status"></p>
+    </form>
   </div>
   <div id="toast" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

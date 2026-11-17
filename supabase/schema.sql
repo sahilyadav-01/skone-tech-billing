@@ -6,18 +6,42 @@ create extension if not exists pgcrypto;
 create table if not exists public.companies (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(trim(name)) between 2 and 120),
+  legal_name text,
+  gstin text,
+  phone text,
+  email text,
+  address text,
+  invoice_prefix text not null default 'INV',
+  bank_name text,
+  bank_branch text,
+  bank_account text,
+  bank_ifsc text,
+  logo_data text,
   created_by uuid not null references auth.users(id) on delete restrict,
   created_at timestamptz not null default now()
 );
+
+alter table public.companies add column if not exists legal_name text;
+alter table public.companies add column if not exists gstin text;
+alter table public.companies add column if not exists phone text;
+alter table public.companies add column if not exists email text;
+alter table public.companies add column if not exists address text;
+alter table public.companies add column if not exists invoice_prefix text not null default 'INV';
+alter table public.companies add column if not exists bank_name text;
+alter table public.companies add column if not exists bank_branch text;
+alter table public.companies add column if not exists bank_account text;
+alter table public.companies add column if not exists bank_ifsc text;
+alter table public.companies add column if not exists logo_data text;
 
 create table if not exists public.company_members (
   company_id uuid not null references public.companies(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   role text not null default 'owner' check (role in ('owner','admin','member')),
   created_at timestamptz not null default now(),
-  primary key (company_id,user_id),
-  unique (user_id)
+  primary key (company_id,user_id)
 );
+
+alter table public.company_members drop constraint if exists company_members_user_id_key;
 
 create table if not exists public.company_data (
   company_id uuid primary key references public.companies(id) on delete cascade,
@@ -36,6 +60,19 @@ to authenticated
 using (exists (
   select 1 from public.company_members member
   where member.company_id=companies.id and member.user_id=auth.uid()
+));
+
+drop policy if exists "Admins can update their company" on public.companies;
+create policy "Admins can update their company"
+on public.companies for update
+to authenticated
+using (exists (
+  select 1 from public.company_members member
+  where member.company_id=companies.id and member.user_id=auth.uid() and member.role in ('owner','admin')
+))
+with check (exists (
+  select 1 from public.company_members member
+  where member.company_id=companies.id and member.user_id=auth.uid() and member.role in ('owner','admin')
 ));
 
 drop policy if exists "Users can read their membership" on public.company_members;
@@ -89,14 +126,6 @@ begin
     raise exception 'Authentication required';
   end if;
 
-  select company_id into new_company_id
-  from public.company_members
-  where user_id=current_user_id;
-
-  if new_company_id is not null then
-    return new_company_id;
-  end if;
-
   if company_name is null or char_length(trim(company_name))<2 then
     raise exception 'A valid company name is required';
   end if;
@@ -119,5 +148,6 @@ revoke all on function public.create_company_for_current_user(text) from public;
 grant execute on function public.create_company_for_current_user(text) to authenticated;
 
 grant select on public.companies to authenticated;
+grant update on public.companies to authenticated;
 grant select on public.company_members to authenticated;
 grant select,insert,update on public.company_data to authenticated;
