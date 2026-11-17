@@ -75,7 +75,14 @@
     try{
       if(mode==='signup'){
         localStorage.setItem(pendingCompanyKey,companyName);
-        const {data,error}=await client.auth.signUp({email,password,options:{data:{company_name:companyName}}});
+        const {data,error}=await client.auth.signUp({
+          email,
+          password,
+          options:{
+            data:{company_name:companyName},
+            emailRedirectTo:window.location.origin
+          }
+        });
         if(error)throw error;
         if(data.session){await enterWorkspace(data.session,companyName)}
         else message('Check your email to confirm the account, then sign in.','success');
