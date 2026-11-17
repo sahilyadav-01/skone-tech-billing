@@ -73,7 +73,8 @@ function showView(id){
     invoices:['RECORDS','Invoices'],
     customers:['DIRECTORY','Customers'],
     items:['CATALOGUE','Items & services'],
-    company:['SETTINGS','Company profile']
+    company:['SETTINGS','Company profile'],
+    privacy:['LEGAL & TRUST','Privacy Policy & Data Security']
   };
   $('#eyebrow').textContent=titles[id][0];
   $('#pageTitle').textContent=titles[id][1];

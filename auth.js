@@ -380,5 +380,44 @@
     location.reload();
   }
 
+  function openPolicyModal(title='Privacy Policy & Terms'){
+    const modal=el('policyModal');
+    if(!modal)return;
+    const titleEl=el('policyModalTitle');
+    if(titleEl)titleEl.textContent=title;
+    modal.classList.remove('is-hidden');
+  }
+
+  function closePolicyModal(){
+    const modal=el('policyModal');
+    if(modal)modal.classList.add('is-hidden');
+  }
+
+  const openPrivacy=el('openPrivacyBtn');
+  if(openPrivacy)openPrivacy.onclick=()=>openPolicyModal('Privacy Policy');
+
+  const openTerms=el('openTermsBtn');
+  if(openTerms)openTerms.onclick=()=>openPolicyModal('Terms of Service & Privacy Policy');
+
+  const sidebarPrivacy=el('sidebarPrivacyBtn');
+  if(sidebarPrivacy)sidebarPrivacy.onclick=()=>openPolicyModal('Privacy Policy');
+
+  const closePolicy=el('closePolicyModal');
+  if(closePolicy)closePolicy.onclick=closePolicyModal;
+
+  const ackPolicy=el('policyAcknowledgeBtn');
+  if(ackPolicy)ackPolicy.onclick=closePolicyModal;
+
+  const policyModalNode=el('policyModal');
+  if(policyModalNode){
+    policyModalNode.onclick=e=>{
+      if(e.target===policyModalNode)closePolicyModal();
+    };
+  }
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape')closePolicyModal();
+  });
+
   window.billingBackend={ready:init(),waitForCompany:()=>companyReady,loadState,saveState,signOut,createCompany,switchCompany,updateCompany,get company(){return company},get companies(){return companies},get role(){return role},get user(){return user}};
 })();

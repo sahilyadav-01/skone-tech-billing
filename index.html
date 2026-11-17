@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="brand-fix.css">
   <link rel="stylesheet" href="auth.css">
   <link rel="stylesheet" href="company.css">
+  <link rel="stylesheet" href="policy.css">
 </head>
 
 <body>
@@ -59,7 +60,7 @@
         <div class="auth-message" id="authMessage" role="status"></div>
         <div class="auth-divider"><span>OR</span></div>
         <button type="button" class="offline-btn" id="guestLoginBtn">⚡ Enter Workspace (Instant / Local Mode)</button>
-        <p class="auth-legal">By continuing, you agree to keep your account credentials secure.</p>
+        <p class="auth-legal">By continuing, you agree to our <button type="button" class="legal-link" id="openPrivacyBtn">Privacy Policy</button> &amp; <button type="button" class="legal-link" id="openTermsBtn">Terms of Service</button>.</p>
       </div>
     </div>
   </section>
@@ -76,12 +77,14 @@
         <button class="nav-item" data-view="customers"><span>♙</span> Customers</button>
         <button class="nav-item" data-view="items"><span>◇</span> Items & Services</button>
         <button class="nav-item" data-view="company"><span>⚙</span> Company Profile</button>
+        <button class="nav-item" data-view="privacy"><span>🔒</span> Privacy &amp; Policy</button>
       </nav>
       <div class="sidebar-foot">
         <span class="status-dot"></span> Synced with Supabase
         <strong id="companyName" style="cursor:pointer;margin-top:14px" title="Manage company profile">Company
           workspace</strong>
         <small id="accountEmail"></small>
+        <button type="button" class="sidebar-legal-btn" id="sidebarPrivacyBtn">🔒 Privacy Policy</button>
         <button class="sign-out" id="signOutBtn" type="button">Sign out</button>
       </div>
     </aside>
@@ -305,9 +308,116 @@
           </aside>
         </div>
       </section>
+
+      <section class="view" id="privacy">
+        <div class="privacy-view-hero">
+          <span class="pill">DATA PRIVACY &amp; SECURITY</span>
+          <h2>Privacy Policy &amp; Trust Manifesto</h2>
+          <p>Your business billing data belongs 100% to your company. We enforce strict multi-tenant isolation, row-level database security, and zero data sharing.</p>
+        </div>
+
+        <div class="privacy-cards-grid">
+          <div class="privacy-feature-card">
+            <span class="icon green">🔒</span>
+            <h4>Strict Company Isolation</h4>
+            <p>Every customer list, catalogue rate, and invoice is partitioned by company. Your records are never merged or visible to other companies.</p>
+          </div>
+          <div class="privacy-feature-card">
+            <span class="icon blue">🛡️</span>
+            <h4>Encrypted Cloud &amp; Local Mode</h4>
+            <p>All cloud traffic is protected by TLS/HTTPS and Supabase Row-Level Security. Offline/Guest data stays strictly on your local browser.</p>
+          </div>
+          <div class="privacy-feature-card">
+            <span class="icon green">📄</span>
+            <h4>100% Data Ownership</h4>
+            <p>You retain full intellectual property over all your invoices. Export your invoices and client records as PDF or print them anytime.</p>
+          </div>
+        </div>
+
+        <div class="privacy-details-panel">
+          <div class="policy-section">
+            <h3><span class="num">1</span> Information We Collect &amp; Store</h3>
+            <p>We only collect and store information essential for generating valid GST-compliant invoices:</p>
+            <ul>
+              <li><strong>Business Details:</strong> Company trade name, registered GSTIN, address, phone number, and custom uploaded logo.</li>
+              <li><strong>Financial &amp; Banking:</strong> Bank account numbers, IFSC codes, and payment info printed on your invoice sheets.</li>
+              <li><strong>Customer Directory:</strong> Client names, phone numbers, and addresses you save for billing convenience.</li>
+              <li><strong>Invoices &amp; Items:</strong> Quantities, tax rates, line items, and invoice history.</li>
+            </ul>
+          </div>
+
+          <div class="policy-section">
+            <h3><span class="num">2</span> Zero Third-Party Monetization</h3>
+            <p>We do <strong>not</strong> sell, rent, monetize, or share your customer lists, sales figures, or business records with advertisers, marketers, or data brokers.</p>
+          </div>
+
+          <div class="policy-section">
+            <h3><span class="num">3</span> Data Rights &amp; Support</h3>
+            <p>You have the full right to edit your business details, delete records, export invoices as PDF, and request account deletion.</p>
+            <p>For any privacy inquiries or assistance, reach us at <a href="mailto:support@skonetech.com" style="color:#059669;font-weight:700">support@skonetech.com</a>.</p>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
   <div id="toast" role="status"></div>
+
+  <!-- Privacy Policy & Terms Modal -->
+  <div class="policy-modal is-hidden" id="policyModal" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle">
+    <div class="policy-modal-card">
+      <div class="policy-modal-head">
+        <div>
+          <span class="trust-badge">🔒 Legal &amp; Trust Document</span>
+          <h2 id="policyModalTitle">Privacy Policy &amp; Terms</h2>
+          <p>Effective Date: November 17, 2026 • SK One Tech Support</p>
+        </div>
+        <button type="button" class="policy-close-btn" id="closePolicyModal" aria-label="Close dialog">✕</button>
+      </div>
+      <div class="policy-modal-body">
+        <div class="policy-trust-badges">
+          <span class="trust-badge">✓ 100% Company-Isolated Data</span>
+          <span class="trust-badge">✓ Zero Third-Party Sharing</span>
+          <span class="trust-badge">✓ Supabase Row-Level Security</span>
+          <span class="trust-badge">✓ GST-Compliant</span>
+        </div>
+
+        <div class="policy-section">
+          <h3><span class="num">1</span> Commitment to Data Privacy</h3>
+          <p>SK One Tech Billing is built to provide professional invoicing while keeping your business confidentiality top priority. We operate under strict multi-tenant isolation principles, meaning <strong>each company's data is 100% isolated and never merged</strong> with another company.</p>
+        </div>
+
+        <div class="policy-section">
+          <h3><span class="num">2</span> Information We Collect</h3>
+          <p>We collect only the business data necessary to prepare and print your invoices:</p>
+          <ul>
+            <li><strong>Company Identity:</strong> Business name, logo, address, GSTIN, and contact details.</li>
+            <li><strong>Banking Information:</strong> Account number, IFSC code, and payment details for customer remittance.</li>
+            <li><strong>Customer &amp; Inventory Records:</strong> Customer directory, product/service catalogue items, rates, and tax percentages.</li>
+            <li><strong>Invoices:</strong> Recorded invoice numbers, line items, timestamps, and payment statuses.</li>
+          </ul>
+        </div>
+
+        <div class="policy-section">
+          <h3><span class="num">3</span> Local-First / Guest Workspace</h3>
+          <p>When using Instant / Local Mode, all your invoice records and company profiles are stored locally in your browser storage and are never uploaded to any remote server without explicit login.</p>
+        </div>
+
+        <div class="policy-section">
+          <h3><span class="num">4</span> Data Security &amp; Encryption</h3>
+          <p>All cloud communications are encrypted via HTTPS/TLS 1.3. Cloud databases are guarded with Row-Level Security (RLS) policies guaranteeing that only authenticated members of your company can access your records.</p>
+        </div>
+
+        <div class="policy-section">
+          <h3><span class="num">5</span> Contact &amp; Support</h3>
+          <p>For questions or assistance regarding your company data, contact SK One Tech Support at <a href="mailto:support@skonetech.com" style="color:#059669;font-weight:700">support@skonetech.com</a>.</p>
+        </div>
+      </div>
+      <div class="policy-modal-foot">
+        <small>SK ONE TECH SUPPORT • FAST • RELIABLE • SECURE</small>
+        <button type="button" class="primary" id="policyAcknowledgeBtn" style="padding:8px 18px">Got it, close</button>
+      </div>
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="auth.js"></script>

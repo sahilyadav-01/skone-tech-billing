@@ -351,6 +351,38 @@
   margin: 14px 0 0;
 }
 
+.legal-link {
+  border: 0;
+  background: transparent;
+  color: #059669;
+  font: 700 11px inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-link:hover {
+  color: #047857;
+}
+
+.sidebar-legal-btn {
+  display: block;
+  border: 0;
+  background: transparent;
+  color: #527567;
+  font: 600 11px inherit;
+  cursor: pointer;
+  padding: 6px 0;
+  margin-top: 6px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sidebar-legal-btn:hover {
+  color: #065f46;
+}
+
 .sidebar-foot strong {
   display: block;
   color: #0f382a;

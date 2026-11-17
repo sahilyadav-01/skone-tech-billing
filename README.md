@@ -55,11 +55,13 @@ skone-tech-billing/
 ├── auth.js                         # Authentication, workspace provisioning, and session manager
 ├── auth.css                        # Full-screen responsive authentication styling
 ├── company.css                     # Company profile and workspace settings styling
+├── policy.css                      # Privacy policy modal and legal trust view styling
 ├── brand-fix.css                   # Responsive brand mark and logo styles
 ├── styles.css                      # Base application design system and invoice layout
 ├── supabase-config.js              # Supabase URL & anon key configuration
 ├── vercel.json                     # Vercel deployment configuration
 ├── index.html                      # Single-page application entrypoint
+├── PRIVACY_POLICY.md               # Complete multi-tenant privacy & data protection policy
 ├── README.md                       # Documentation & setup guide
 └── LICENSE                         # Proprietary software license
 ```
