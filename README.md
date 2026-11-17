@@ -1,104 +1,148 @@
 # SK One Tech Billing
 
-A lightweight browser-based billing application for creating GST invoices for computer repairs, IT support, products, and technical services.
+A lightweight, modern browser-based billing and GST invoicing application designed for businesses, computer repair centers, IT support providers, product sellers, and freelance services.
 
 **Author:** Sahil Yadav
+**Copyright:** © 2026 SK One Tech Support. All rights reserved.
 
-## Features
+---
 
-- Email/password authentication with a private company workspace
-- Multi-company data isolation enforced by Supabase Row Level Security
-- Cloud sync across devices through Supabase
-- Create invoices with customer, supply location, payment status, and notes
-- Add multiple products or services with quantity, rate, discount, and GST
-- Live subtotal, discount, tax, and grand-total calculations
-- Download branded PDF invoices with the SKONE Tech Support logo
-- Print invoice previews
-- Save customers, reusable items, and invoices in the browser
-- Track revenue, pending payments, and recent invoices on the dashboard
-- Responsive layout for desktop and mobile screens
+## ✨ Features
 
-## Supabase setup
+- **Company Profile & Custom Branding:**
+  - Upload custom company logo (PNG, JPG, WebP) with automatic scaling and live preview.
+  - Complete business profile: Display Name, Legal Name, GSTIN, Phone, Email, and Business Address.
+  - Bank settlement details on invoices: Bank Name, Branch, Account Number, and IFSC Code.
+  - Custom invoice prefix configuration (e.g., `INV`, `SK`, `BILL`).
 
-1. Create a Supabase project.
-2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql).
-3. Copy the project URL and public anon key from **Project Settings > API**.
-4. For local development, add the values to `supabase-config.js`.
-5. In **Authentication > URL Configuration**, add the local and deployed URLs.
+- **Dynamic GST Invoicing:**
+  - Live itemized invoicing with quantity, unit rate, percentage discount, and GST rate (0%, 5%, 12%, 18%, 28%).
+  - Live calculations for Subtotal, Discount, GST Tax, and Grand Total.
+  - Auto-generated number-to-words currency breakdown (Indian Rupees / Lakhs / Crores).
+  - Branded PDF downloads generated client-side via jsPDF.
+  - Formatted Print Preview ready for direct thermal or A4 printing.
 
-Never put the Supabase service-role key in browser code or Vercel environment variables used by this app.
+- **Strict Data Isolation:**
+  - Complete data privacy: customers, items/catalogue, invoices, and business profiles are 100% isolated per company workspace.
+  - Database-level isolation enforced through Supabase Row Level Security (RLS).
+  - Zero data bleed between separate accounts.
 
-## Run locally
+- **Fast Authentication & Offline Access:**
+  - Email/password authentication with cloud workspace synchronization.
+  - Password visibility toggle (Show/Hide) and Forgot Password reset flow.
+  - **Instant Local/Offline Mode:** 1-click access without cloud dependencies when offline or testing.
+  - Resilient local browser caching (`localStorage`) alongside Supabase cloud sync.
 
-No build step is required. Start a local static server from the project directory:
+- **Catalogue & Contact Directory:**
+  - Reusable Items & Services price list.
+  - Customer contact and GSTIN directory for rapid invoice creation.
+  - Revenue analytics dashboard with monthly turnover and payment status tracking.
 
+---
+
+## 📁 Project Structure
+
+```text
+skone-tech-billing/
+├── assets/
+│   └── skone-logo.webp             # Default application & brand logo
+├── api/
+│   └── config.js                   # Vercel serverless endpoint for Supabase config
+├── supabase/
+│   ├── schema.sql                  # Main database schema with Row Level Security (RLS)
+│   └── multi_company_migration.sql # Migration script for company profiles & multi-tenancy
+├── app.js                          # Core billing logic, calculations, PDF generation, UI views
+├── auth.js                         # Authentication, workspace provisioning, and session manager
+├── auth.css                        # Full-screen responsive authentication styling
+├── company.css                     # Company profile and workspace settings styling
+├── brand-fix.css                   # Responsive brand mark and logo styles
+├── styles.css                      # Base application design system and invoice layout
+├── supabase-config.js              # Supabase URL & anon key configuration
+├── vercel.json                     # Vercel deployment configuration
+├── index.html                      # Single-page application entrypoint
+├── README.md                       # Documentation & setup guide
+└── LICENSE                         # Proprietary software license
+```
+
+---
+
+## 🚀 Running Locally
+
+No complex build step or Node bundling required. Run using any local HTTP static server:
+
+### Option A: Using Python (Recommended)
 ```powershell
 python -m http.server 4173 --bind 127.0.0.1
 ```
-
-Then open:
-
+Then open your browser at:
 ```text
 http://127.0.0.1:4173/
 ```
 
-Opening `index.html` directly may restrict some browser features, so using the local server is recommended.
-
-## Create and download an invoice
-
-1. Add the customer under **Customers**.
-2. Add reusable services or products under **Items & Services** if needed.
-3. Select **New Invoice**.
-4. Enter the invoice details and line items.
-5. Select **Download PDF** to save the branded invoice.
-6. Select **Save invoice** to keep it in the invoice history.
-
-Saved invoices also have their own **Download PDF** action.
-
-## Project structure
-
-```text
-.
-|-- assets/
-|   `-- skone-logo.webp       # Invoice and application logo
-|-- output/pdf/               # Generated reference invoice output
-|-- app.js                    # Billing logic and PDF generation
-|-- brand-fix.css             # Logo-specific styling
-|-- index.html                # Application interface
-`-- styles.css                # Main application styles
+### Option B: Using Node (npx)
+```powershell
+npx serve -l 4173
 ```
 
-## Data storage
+> **Note:** Opening `index.html` via the `file://` protocol may block web canvas operations or PDF font rendering. Using a local web server is recommended.
 
-Customer, item, and invoice data is stored in the authenticated company's `company_data` record in Supabase. A company-scoped browser cache is retained for resilience.
+---
 
-Supabase Row Level Security checks the signed-in user's company membership before allowing access. Back up important invoices as PDFs.
+## ⚙️ Supabase Cloud Setup
 
-## Deploy to Vercel
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open the **SQL Editor** in your Supabase Dashboard and run:
+   - [`supabase/schema.sql`](supabase/schema.sql)
+3. Under **Project Settings > API**, copy your **Project URL** and **anon public key**.
+4. Paste these into `supabase-config.js`:
+   ```javascript
+   window.SKONE_SUPABASE_CONFIG = {
+     url: 'https://YOUR_PROJECT_REF.supabase.co',
+     anonKey: 'YOUR_SUPABASE_ANON_KEY'
+   };
+   ```
+5. In **Authentication > URL Configuration**, add your local address (`http://127.0.0.1:4173`) and production domain to **Redirect URLs**.
 
-1. Import the GitHub repository into Vercel.
-2. Keep the framework preset as **Other** and leave the build command empty.
-3. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` in Vercel Project Settings > Environment Variables.
-4. Deploy the project.
-5. Add the Vercel production URL to Supabase Authentication > URL Configuration.
+---
 
-`api/config.js` exposes only the public Supabase URL and anon key to the browser. Database security remains enforced by Supabase RLS.
+## 🏢 Setting Up Your Company Profile
 
-## PDF dependency
+1. Sign in or choose **⚡ Continue in Offline / Local Mode**.
+2. Click **⚙ Company Profile** in the left sidebar (or click the hero button on the Dashboard).
+3. **Upload Logo:** Click **Choose logo** to upload your brand mark. It will automatically be formatted and previewed.
+4. **Enter Details:** Fill in your display name, legal business name, GSTIN, phone, email, and billing address.
+5. **Bank Details:** Add your bank name, branch, account number, and IFSC code for settlement information on bills.
+6. Click **Save company profile**. All future invoices will automatically print with your custom logo and credentials.
 
-PDF downloads use jsPDF loaded from cdnjs. An internet connection is required when the application is first loaded unless the library is later hosted locally.
+---
 
-## Business details
+## 🧾 Creating an Invoice
 
-Provider and bank details used in downloaded invoices are configured in the `BUSINESS` object near the end of `app.js`.
+1. Go to **Customers** and add a client (or use the default *Walk-in Customer*).
+2. Go to **Items & Services** to add frequently billed repairs, parts, or hourly services.
+3. Click **＋ New Invoice**:
+   - Select the customer and date.
+   - Choose or add items, adjust quantity, rate, discount, and tax.
+   - Review live totals on the summary panel.
+4. Click **Download PDF** to export a high-resolution, print-ready GST tax invoice.
+5. Click **Save invoice** to record it in your invoice history and dashboard analytics.
 
-## Copyright
+---
 
-Copyright © 2026 SK One Tech Support. All rights reserved.  
-Developed by Sahil Yadav.
+## 🌐 Deploying to Vercel
 
-This software and its source code may not be copied, modified, distributed, or used commercially without prior written permission from SK One Tech Support.
+1. Push your repository to GitHub.
+2. In [Vercel](https://vercel.com), click **Add New > Project** and import the repository.
+3. Framework Preset: **Other** (leave build settings empty).
+4. Add the following Environment Variables under **Project Settings > Environment Variables**:
+   - `SUPABASE_URL`: Your Supabase Project URL
+   - `SUPABASE_ANON_KEY`: Your Supabase Anon Key
+5. Click **Deploy**.
+6. Copy the assigned production domain (e.g. `https://your-app.vercel.app`) and add it to Supabase **Authentication > URL Configuration**.
 
-## License
+---
 
-This project is proprietary software. See [LICENSE](LICENSE) for the complete terms.
+## 📄 License
+
+This software and its source code are proprietary. See [LICENSE](LICENSE) for complete terms.
+Copyright © 2026 SK One Tech Support. Developed by **Sahil Yadav**.
