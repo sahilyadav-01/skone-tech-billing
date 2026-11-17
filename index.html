@@ -43,7 +43,7 @@
   <div class="app-shell is-hidden" id="appShell">
     <aside class="sidebar">
       <div class="brand">
-        <img src="assets/skone-logo.webp" alt="SKONE Tech Support">
+        <img id="sidebarLogo" src="assets/skone-logo.webp" alt="Company logo">
       </div>
       <nav>
         <button class="nav-item active" data-view="dashboard"><span>⌂</span> Dashboard</button>
@@ -58,7 +58,7 @@
         <label class="company-switch-label" for="companySwitcher">Active company</label>
         <select id="companySwitcher" class="company-switcher" aria-label="Switch company"></select>
         <button class="add-company-link" id="addCompanyBtn" type="button">＋ Add company</button>
-        <strong id="companyName">Company workspace</strong>
+        <strong id="companyName" style="cursor:pointer" title="Manage company profile">Company workspace</strong>
         <small id="accountEmail"></small>
         <button class="sign-out" id="signOutBtn" type="button">Sign out</button>
       </div>
@@ -73,7 +73,15 @@
 
       <section class="view active" id="dashboard">
         <div class="hero-card">
-          <div><span class="pill">BUSINESS SNAPSHOT</span><h2>Billing, without the busywork.</h2><p>Create professional GST invoices for repairs, products and support services in minutes.</p><button class="light-btn" data-open-invoice>Create your first invoice →</button></div>
+          <div>
+            <span class="pill">BUSINESS SNAPSHOT</span>
+            <h2>Billing, without the busywork.</h2>
+            <p>Create professional GST invoices for repairs, products and support services in minutes.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button class="light-btn" data-open-invoice>Create your first invoice →</button>
+              <button class="light-btn outline-hero" data-view-link="company">⚙ Company Profile & Logo</button>
+            </div>
+          </div>
           <div class="hero-total"><small>This month</small><strong id="monthRevenue">₹0</strong><span id="monthCount">0 invoices issued</span></div>
         </div>
         <div class="stats">

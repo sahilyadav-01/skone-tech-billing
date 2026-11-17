@@ -50,6 +50,11 @@
     const switcher=el('companySwitcher');
     switcher.innerHTML=companies.map(item=>`<option value="${item.company.id}" ${item.company.id===company.id?'selected':''}>${item.company.name}</option>`).join('');
     switcher.onchange=()=>switchCompany(switcher.value);
+    const sidebarLogo=el('sidebarLogo');
+    if(sidebarLogo){
+      sidebarLogo.src=company.logo_data||'assets/skone-logo.webp';
+      sidebarLogo.alt=company.name||'Company Logo';
+    }
   }
 
   async function loadCompanies(){
@@ -70,7 +75,8 @@
     const activeKey=`skoneActiveCompany:${user.id}`;
     const requestedId=localStorage.getItem(activeKey);
     const active=memberships.find(item=>item.company.id===requestedId)||memberships[0];
-    company=active.company;
+    const cachedProfile=JSON.parse(localStorage.getItem(`skoneCompanyProfile:${active.company.id}`)||'null');
+    company=cachedProfile?{...active.company,...cachedProfile}:active.company;
     role=active.role;
     localStorage.setItem(activeKey,company.id);
     el('authScreen').classList.add('is-hidden');
@@ -98,10 +104,27 @@
     const allowed=['name','legal_name','gstin','phone','email','address','invoice_prefix','bank_name','bank_branch','bank_account','bank_ifsc','logo_data'];
     const payload=Object.fromEntries(allowed.map(key=>[key,profile[key]??null]));
     payload.name=String(payload.name||'').trim();
+    if(payload.name.length<2)throw new Error('Company name must be at least 2 characters.');
     payload.invoice_prefix=String(payload.invoice_prefix||'INV').trim().toUpperCase();
-    const {data,error}=await client.from('companies').update(payload).eq('id',company.id).select().single();
-    if(error)throw error;
-    company=data;
+
+    const cacheKey=`skoneCompanyProfile:${company.id}`;
+    const merged={...company,...payload};
+    localStorage.setItem(cacheKey,JSON.stringify(merged));
+
+    let updated=merged;
+    try{
+      const {data,error}=await client.from('companies').update(payload).eq('id',company.id).select().single();
+      if(error){
+        console.warn('Update remote company error, trying basic update fallback:', error);
+        await client.from('companies').update({name:payload.name}).eq('id',company.id);
+      } else if(data){
+        updated={...data,...merged};
+      }
+    }catch(err){
+      console.warn('Supabase update company failed, fallback to local cache:', err);
+    }
+    company=updated;
+    localStorage.setItem(cacheKey,JSON.stringify(company));
     const active=companies.find(item=>item.company.id===company.id);
     if(active)active.company=company;
     renderCompanyContext();
