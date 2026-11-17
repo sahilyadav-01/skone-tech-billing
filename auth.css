@@ -49,14 +49,16 @@
 .auth-brand-head {
   position: relative;
   z-index: 1;
+  margin-bottom: 8px;
 }
 
 .auth-showcase img {
-  width: auto;
-  max-width: 190px;
-  max-height: 48px;
+  width: min(290px, 78%);
+  max-height: 105px;
+  height: auto;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));
 }
 
 .auth-hero-content {
