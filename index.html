@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#12372a">
+  <title>SK One Tech Billing</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">SK</div>
+        <div><strong>SK One Tech</strong><span>Smart Billing</span></div>
+      </div>
+      <nav>
+        <button class="nav-item active" data-view="dashboard"><span>⌂</span> Dashboard</button>
+        <button class="nav-item" data-view="invoice"><span>＋</span> New Invoice</button>
+        <button class="nav-item" data-view="invoices"><span>▤</span> Invoices</button>
+        <button class="nav-item" data-view="customers"><span>♙</span> Customers</button>
+        <button class="nav-item" data-view="items"><span>◇</span> Items & Services</button>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="status-dot"></span> Saved on this device
+        <small>SK One Tech Support</small>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button class="menu" id="menuBtn" aria-label="Open menu">☰</button>
+        <div><p id="eyebrow">OVERVIEW</p><h1 id="pageTitle">Good day, Sahil</h1></div>
+        <div class="top-actions"><span id="today"></span><button class="primary" data-open-invoice>＋ Create invoice</button></div>
+      </header>
+
+      <section class="view active" id="dashboard">
+        <div class="hero-card">
+          <div><span class="pill">BUSINESS SNAPSHOT</span><h2>Billing, without the busywork.</h2><p>Create professional GST invoices for repairs, products and support services in minutes.</p><button class="light-btn" data-open-invoice>Create your first invoice →</button></div>
+          <div class="hero-total"><small>This month</small><strong id="monthRevenue">₹0</strong><span id="monthCount">0 invoices issued</span></div>
+        </div>
+        <div class="stats">
+          <article><span class="icon green">₹</span><div><small>Total revenue</small><strong id="totalRevenue">₹0</strong><em>All recorded invoices</em></div></article>
+          <article><span class="icon amber">◷</span><div><small>Pending payment</small><strong id="pendingRevenue">₹0</strong><em id="pendingCount">0 unpaid invoices</em></div></article>
+          <article><span class="icon blue">♙</span><div><small>Customers</small><strong id="customerCount">0</strong><em>Saved contacts</em></div></article>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Recent invoices</h3><p>Your latest billing activity</p></div><button class="text-btn" data-view-link="invoices">View all →</button></div>
+          <div id="recentInvoices" class="empty-state"><b>No invoices yet</b><span>Create an invoice and it will appear here.</span></div>
+        </div>
+      </section>
+
+      <section class="view" id="invoice">
+        <div class="invoice-grid">
+          <div class="panel form-panel">
+            <div class="section-title"><span>1</span><div><h3>Invoice details</h3><p>Customer and billing information</p></div></div>
+            <div class="form-grid">
+              <label>Invoice number<input id="invoiceNo" readonly></label>
+              <label>Invoice date<input type="date" id="invoiceDate"></label>
+              <label class="wide">Customer<select id="invoiceCustomer"></select></label>
+              <label>Place of supply<input id="placeSupply" value="Haryana"></label>
+              <label>Payment status<select id="paymentStatus"><option>Pending</option><option>Paid</option><option>Partially Paid</option></select></label>
+            </div>
+            <div class="section-title"><span>2</span><div><h3>Items & services</h3><p>Add products, repairs or support work</p></div></div>
+            <div id="lineItems"></div>
+            <button class="add-line" id="addLine">＋ Add another item</button>
+            <div class="section-title"><span>3</span><div><h3>Notes</h3><p>Optional message for your customer</p></div></div>
+            <textarea id="invoiceNotes" rows="3" placeholder="Thank you for choosing SK One Tech Support."></textarea>
+          </div>
+          <aside class="panel summary-panel">
+            <div class="panel-head"><div><h3>Invoice summary</h3><p>Live calculation</p></div></div>
+            <div class="totals"><div><span>Subtotal</span><b id="sumSubtotal">₹0.00</b></div><div><span>Discount</span><b id="sumDiscount">− ₹0.00</b></div><div><span>GST</span><b id="sumTax">₹0.00</b></div><div class="grand"><span>Grand total</span><strong id="sumGrand">₹0.00</strong></div></div>
+            <button class="primary full" id="saveInvoice">Save invoice</button>
+            <button class="outline full" id="printDraft">Print preview</button>
+            <p class="privacy-note">Your billing data stays in this browser.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="invoices">
+        <div class="panel">
+          <div class="panel-head"><div><h3>All invoices</h3><p>Search, review and print previous bills</p></div><input class="search" id="invoiceSearch" placeholder="Search invoice or customer…"></div>
+          <div id="invoiceList" class="empty-state"></div>
+        </div>
+      </section>
+
+      <section class="view" id="customers">
+        <div class="split-layout">
+          <form class="panel form-card" id="customerForm"><h3>Add customer</h3><p>Save details for faster invoicing.</p><label>Name<input id="customerName" required placeholder="Customer / company name"></label><label>Phone<input id="customerPhone" placeholder="+91 98765 43210"></label><label>GSTIN<input id="customerGstin" placeholder="Optional GST number"></label><label>Address<textarea id="customerAddress" rows="3" placeholder="Billing address"></textarea></label><button class="primary full">Save customer</button></form>
+          <div class="panel"><div class="panel-head"><div><h3>Customers</h3><p>Your saved contacts</p></div></div><div id="customerList" class="card-list"></div></div>
+        </div>
+      </section>
+
+      <section class="view" id="items">
+        <div class="split-layout">
+          <form class="panel form-card" id="itemForm"><h3>Add item or service</h3><p>Build a reusable price list.</p><label>Name<input id="itemName" required placeholder="Laptop repair / RAM / AMC"></label><label>Rate (₹)<input id="itemRate" type="number" min="0" required placeholder="0"></label><label>GST rate<select id="itemTax"><option value="0">0%</option><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option></select></label><button class="primary full">Save item</button></form>
+          <div class="panel"><div class="panel-head"><div><h3>Items & services</h3><p>Your reusable catalogue</p></div></div><div id="itemList" class="card-list"></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
