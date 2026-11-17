@@ -31,10 +31,21 @@
         <form id="authForm">
           <label class="company-field" id="companyField">Company name<input id="authCompany" autocomplete="organization" placeholder="Your company name"></label>
           <label>Email address<input id="authEmail" type="email" autocomplete="email" required placeholder="you@company.com"></label>
-          <label>Password<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Minimum 6 characters"></label>
+          <label>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span>Password</span>
+              <button type="button" id="togglePasswordBtn" class="toggle-pass-btn">Show</button>
+            </div>
+            <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Minimum 6 characters">
+          </label>
+          <div class="auth-options">
+            <button type="button" class="text-link" id="forgotPasswordBtn">Forgot password?</button>
+          </div>
           <button class="primary full auth-submit" id="authSubmit" type="submit">Sign in</button>
         </form>
         <p class="auth-message" id="authMessage" role="status"></p>
+        <div class="auth-divider"><span>OR</span></div>
+        <button type="button" class="offline-btn" id="guestLoginBtn">Continue in Offline / Local Mode</button>
         <p class="auth-legal">By continuing, you agree to keep your account credentials secure.</p>
       </div>
     </div>
