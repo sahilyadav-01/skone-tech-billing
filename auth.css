@@ -382,8 +382,8 @@
     min-height: auto;
   }
   .auth-showcase img {
-    max-width: 160px;
-    max-height: 40px;
+    width: min(240px, 70%);
+    max-height: 85px;
   }
   .auth-hero-content {
     padding: 14px 0;
@@ -402,6 +402,10 @@
 @media(max-width: 520px) {
   .auth-showcase {
     padding: 24px 16px 18px;
+  }
+  .auth-showcase img {
+    width: min(200px, 65%);
+    max-height: 72px;
   }
   .auth-showcase h1 {
     font-size: 24px;
