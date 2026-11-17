@@ -1,6 +1,5 @@
 const KEY='skoneBillingV1';
-const defaults={customers:[{id:crypto.randomUUID(),name:'Walk-in Customer',phone:'',gstin:'',address:''}],items:[{id:crypto.randomUUID(),name:'Computer / Laptop Repair',rate:750,tax:18},{id:crypto.randomUUID(),name:'Remote Technical Support',rate:500,tax:18},{id:crypto.randomUUID(),name:'Windows Installation',rate:800,tax:18}],invoices:[]};
-let state=structuredClone(defaults);
+let state={customers:[],items:[],invoices:[]};
 let storageKey=KEY;
 let draft={lines:[]};
 let currentLogoData='';
@@ -11,47 +10,51 @@ const save=()=>{localStorage.setItem(storageKey,JSON.stringify(state));window.bi
 const toast=t=>{const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)};
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
-const BUSINESS={
-  name:"S'K One Tech Support",
-  address:'025, Yadav Niwas, Block A, Vpo. PALWA, ALWAR, RAJASTHAN-301706',
-  gstin:'08BNBPY5978C1ZH',
-  owner:'SAHIL YADAV',
-  phone:'8290500635',
-  bank:'STATE BANK OF INDIA',
-  branch:'PALAVA, ALWAR',
-  account:'45126444407',
-  ifsc:'SBIN0032434'
-};
-
 function getActiveBusiness(){
   const comp=window.billingBackend?.company||{};
+  const isDefaultSkone=(comp.name||'').toLowerCase().includes('sk one');
   return {
-    name: comp.name || BUSINESS.name,
-    legal_name: comp.legal_name || comp.name || BUSINESS.name,
-    address: comp.address || BUSINESS.address,
-    gstin: comp.gstin || BUSINESS.gstin,
-    owner: comp.legal_name || comp.name || BUSINESS.owner,
-    phone: comp.phone || BUSINESS.phone,
+    name: comp.name || 'Your Company',
+    legal_name: comp.legal_name || comp.name || 'Your Company',
+    address: comp.address || (isDefaultSkone ? '025, Yadav Niwas, Block A, Vpo. PALWA, ALWAR, RAJASTHAN-301706' : ''),
+    gstin: comp.gstin || (isDefaultSkone ? '08BNBPY5978C1ZH' : ''),
+    owner: comp.legal_name || comp.name || (isDefaultSkone ? 'SAHIL YADAV' : ''),
+    phone: comp.phone || (isDefaultSkone ? '8290500635' : ''),
     email: comp.email || '',
-    bank: comp.bank_name || BUSINESS.bank,
-    branch: comp.bank_branch || BUSINESS.branch,
-    account: comp.bank_account || BUSINESS.account,
-    ifsc: comp.bank_ifsc || BUSINESS.ifsc,
+    invoice_prefix: comp.invoice_prefix || 'INV',
+    bank: comp.bank_name || (isDefaultSkone ? 'STATE BANK OF INDIA' : ''),
+    branch: comp.bank_branch || (isDefaultSkone ? 'PALAVA, ALWAR' : ''),
+    account: comp.bank_account || (isDefaultSkone ? '45126444407' : ''),
+    ifsc: comp.bank_ifsc || (isDefaultSkone ? 'SBIN0032434' : ''),
     logo: comp.logo_data || null
   };
 }
 
 function updateBrandDisplay(){
   const comp=window.billingBackend?.company||{};
-  const logo=comp.logo_data||'assets/skone-logo.webp';
-  const sbLogo=$('#sidebarLogo');
-  if(sbLogo){
-    sbLogo.src=logo;
-    sbLogo.alt=comp.name||'Company logo';
+  const brandContainer=$('#brandContainer');
+  if(brandContainer){
+    if(comp.logo_data){
+      brandContainer.innerHTML=`<img id="sidebarLogo" src="${comp.logo_data}" alt="${esc(comp.name)}" style="max-height:48px;max-width:180px;object-fit:contain;display:block">`;
+    }else{
+      const isDefaultSkone=(comp.name||'').toLowerCase().includes('sk one');
+      if(isDefaultSkone){
+        brandContainer.innerHTML=`<img id="sidebarLogo" src="assets/skone-logo.webp" alt="${esc(comp.name)}" style="max-height:48px;max-width:180px;object-fit:contain;display:block">`;
+      }else{
+        const initials=(comp.name||'CO').split(' ').map(w=>w[0]).filter(Boolean).slice(0,2).join('').toUpperCase();
+        brandContainer.innerHTML=`
+          <div class="brand-mark">${esc(initials)}</div>
+          <div>
+            <strong>${esc(comp.name||'Company')}</strong>
+            <span>Workspace</span>
+          </div>
+        `;
+      }
+    }
   }
   const preview=$('#companyLogoPreview');
-  if(preview && !currentLogoData){
-    preview.src=logo;
+  if(preview&&!currentLogoData){
+    preview.src=comp.logo_data||'assets/skone-logo.webp';
   }
   $('#companyName').textContent=comp.name||'Company workspace';
   const activeView=$('.view.active')?.id;
@@ -94,11 +97,20 @@ function invoiceNumber(){
 }
 
 function initInvoice(){
-  if(draft.lines.length)return;
+  draft={lines:[]};
   $('#invoiceNo').value=invoiceNumber();
   $('#invoiceDate').value=new Date().toISOString().slice(0,10);
   $('#invoiceCustomer').innerHTML=state.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  draft.lines=[{id:crypto.randomUUID(),itemId:state.items[0]?.id||'',description:state.items[0]?.name||'',qty:1,rate:state.items[0]?.rate||0,tax:state.items[0]?.tax||18,discount:0}];
+  const firstItem=state.items[0];
+  draft.lines=[{
+    id:crypto.randomUUID(),
+    itemId:firstItem?.id||'',
+    description:firstItem?.name||'Item / Service',
+    qty:1,
+    rate:firstItem?.rate||0,
+    tax:firstItem?.tax||18,
+    discount:0
+  }];
   renderLines();
 }
 
@@ -151,12 +163,13 @@ $('#addLine').onclick=()=>{
 
 $('#saveInvoice').onclick=()=>{
   if(!draft.lines.some(l=>l.rate>0))return toast('Add an item with a price');
+  const custId=$('#invoiceCustomer').value||state.customers[0]?.id;
   const inv={
     id:crypto.randomUUID(),
     number:$('#invoiceNo').value,
     date:$('#invoiceDate').value,
-    customerId:$('#invoiceCustomer').value,
-    place:$('#placeSupply').value,
+    customerId:custId,
+    place:$('#placeSupply').value.trim(),
     status:$('#paymentStatus').value,
     notes:$('#invoiceNotes').value,
     lines:draft.lines,
@@ -176,10 +189,10 @@ $('#customerForm').onsubmit=e=>{
   e.preventDefault();
   state.customers.push({
     id:crypto.randomUUID(),
-    name:$('#customerName').value,
-    phone:$('#customerPhone').value,
-    gstin:$('#customerGstin').value,
-    address:$('#customerAddress').value
+    name:$('#customerName').value.trim(),
+    phone:$('#customerPhone').value.trim(),
+    gstin:$('#customerGstin').value.trim().toUpperCase(),
+    address:$('#customerAddress').value.trim()
   });
   save();
   e.target.reset();
@@ -203,7 +216,7 @@ $('#itemForm').onsubmit=e=>{
   e.preventDefault();
   state.items.push({
     id:crypto.randomUUID(),
-    name:$('#itemName').value,
+    name:$('#itemName').value.trim(),
     rate:Number($('#itemRate').value),
     tax:Number($('#itemTax').value)
   });
@@ -215,7 +228,7 @@ $('#itemForm').onsubmit=e=>{
 
 function renderItems(){
   const h=$('#itemList');
-  h.innerHTML=state.items.length?state.items.map(x=>`<div class="list-row"><div><strong>${esc(x.name)}</strong><small>${x.tax}% GST</small></div><div class="row-actions"><b>${money(x.rate)}</b><button class="mini-btn" data-del-item="${x.id}">Delete</button></div></div>`).join(''):'<div class="empty-state">No items saved</div>';
+  h.innerHTML=state.items.length?state.items.map(x=>`<div class="list-row"><div><strong>${esc(x.name)}</strong><small>${x.tax}% GST</small></div><div class="row-actions"><b>${money(x.rate)}</b><button class="mini-btn" data-del-item="${x.id}">Delete</button></div></div>`).join(''):'<div class="empty-state">No items saved in this catalogue</div>';
   $$('[data-del-item]').forEach(b=>b.onclick=()=>{
     state.items=state.items.filter(x=>x.id!==b.dataset.delItem);
     save();
@@ -236,7 +249,7 @@ function renderInvoices(filter=''){
   h.innerHTML=list.length?`<table class="invoice-table"><thead><tr><th>INVOICE</th><th>CUSTOMER</th><th>DATE</th><th>AMOUNT</th><th>STATUS</th><th></th></tr></thead><tbody>${list.map(i=>{
     const c=state.customers.find(x=>x.id===i.customerId);
     return `<tr><td><b>${i.number}</b></td><td>${esc(c?.name||'Unknown')}</td><td>${new Date(i.date+'T00:00:00').toLocaleDateString('en-IN')}</td><td><b>${money(i.totals.total)}</b></td><td>${badge(i.status)}</td><td><button class="mini-btn" data-status="${i.id}">Mark paid</button> <button class="mini-btn" data-print="${i.id}">Print</button></td></tr>`;
-  }).join('')}</tbody></table>`:'<b>No matching invoices</b><span>Create your first invoice to get started.</span>';
+  }).join('')}</tbody></table>`:'<b>No matching invoices</b><span>Create an invoice for this company to get started.</span>';
   $$('[data-status]').forEach(b=>b.onclick=()=>{
     const i=state.invoices.find(x=>x.id===b.dataset.status);
     i.status='Paid';
@@ -253,9 +266,9 @@ $('#invoiceSearch').oninput=e=>renderInvoices(e.target.value);
 function printInvoice(id){
   const i=state.invoices.find(x=>x.id===id),c=state.customers.find(x=>x.id===i.customerId),w=window.open('','_blank');
   const biz=getActiveBusiness();
-  const logoHtml = biz.logo
+  const logoHtml=biz.logo
     ? `<img src="${biz.logo}" alt="${esc(biz.name)}" style="max-height:55px;max-width:180px;object-fit:contain;margin-bottom:8px;display:block">`
-    : `<div class="brand">${esc(biz.name)}</div>`;
+    : `<div class="brand" style="font-size:22px;margin-bottom:8px">${esc(biz.name)}</div>`;
   w.document.write(`<!doctype html><html><head><title>${esc(i.number)}</title><style>
     body{font:14px Arial,sans-serif;color:#17241f;padding:40px;max-width:800px;margin:auto}
     header{display:flex;justify-content:space-between;border-bottom:3px solid #12372a;padding-bottom:20px;gap:20px}
@@ -314,7 +327,7 @@ function printInvoice(id){
         <div><b>IFSC Code:</b> ${esc(biz.ifsc||'-')}</div>
       </div>
     </div>` : ''}
-    <footer>${esc(i.notes||'Thank you for your business.')}</footer>
+    <footer>${esc(i.notes||`Thank you for choosing ${biz.name}.`)}</footer>
   </body></html>`);
   w.document.close();
   setTimeout(()=>w.print(),300);
@@ -331,7 +344,7 @@ function renderDashboard(){
   const h=$('#recentInvoices');
   if(!state.invoices.length){
     h.className='empty-state';
-    h.innerHTML='<b>No invoices yet</b><span>Create an invoice and it will appear here.</span>';
+    h.innerHTML='<b>No invoices yet</b><span>Create an invoice for this company and it will appear here.</span>';
   }else{
     h.className='card-list';
     h.innerHTML=state.invoices.slice(0,5).map(i=>{
@@ -350,35 +363,17 @@ function numberWords(value){
   if(n)out.push(underThousand(n));return `Rupees ${out.join(' ')} Only`;
 }
 
-function logoDataUrl(){
-  return new Promise((resolve,reject)=>{
-    const biz=getActiveBusiness();
-    if(biz.logo)return resolve(biz.logo);
-    const img=new Image();
-    img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      canvas.width=img.naturalWidth;
-      canvas.height=img.naturalHeight;
-      canvas.getContext('2d').drawImage(img,0,0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror=reject;
-    img.src='assets/skone-logo.webp';
-  });
-}
-
-async function getLogoImageInfo(){
-  const url=await logoDataUrl();
+async function getLogoImageInfo(logoUrl){
   return new Promise(resolve=>{
     const img=new Image();
     img.onload=()=>{
       const maxW=54,maxH=22;
       let w=img.naturalWidth||100,h=img.naturalHeight||40;
       const ratio=Math.min(maxW/w,maxH/h);
-      resolve({url,width:w*ratio,height:h*ratio});
+      resolve({url:logoUrl,width:w*ratio,height:h*ratio});
     };
-    img.onerror=()=>resolve({url,width:54,height:21});
-    img.src=url;
+    img.onerror=()=>resolve({url:logoUrl,width:54,height:21});
+    img.src=logoUrl;
   });
 }
 
@@ -387,7 +382,7 @@ function currentDraftInvoice(){
   return {
     number:$('#invoiceNo').value,
     date:$('#invoiceDate').value,
-    place:$('#placeSupply').value,
+    place:$('#placeSupply').value.trim(),
     status:$('#paymentStatus').value,
     notes:$('#invoiceNotes').value,
     lines:draft.lines.map(x=>({...x})),
@@ -401,25 +396,37 @@ async function downloadInvoicePdf(invoice,customer){
   const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'}),ink=[16,27,49],muted=[86,101,122],line=[203,213,225],soft=[241,245,249];
   const right=196;let y=12;
   const biz=getActiveBusiness();
-  try{
-    const logoInfo=await getLogoImageInfo();
-    doc.addImage(logoInfo.url,'PNG',14,y,logoInfo.width,logoInfo.height);
-  }catch{
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(16);
-    doc.text(biz.name.toUpperCase(),14,y+10);
+
+  if(biz.logo){
+    try{
+      const logoInfo=await getLogoImageInfo(biz.logo);
+      doc.addImage(logoInfo.url,'PNG',14,y,logoInfo.width,logoInfo.height);
+    }catch{
+      doc.setTextColor(...ink);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(biz.name.toUpperCase(),14,y+10);
+    }
+  }else{
+    doc.setTextColor(...ink);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(biz.name.toUpperCase(),14,y+10);
   }
+
   doc.setTextColor(...ink);doc.setFont('helvetica','bold');doc.setFontSize(22);doc.text('TAX INVOICE',right,y+9,{align:'right'});doc.setFontSize(8);doc.text('ORIGINAL FOR RECIPIENT',right,y+15,{align:'right'});y=38;
   doc.setDrawColor(...ink);doc.setLineWidth(.7);doc.line(14,y,right,y);y+=5;
   const bar=title=>{doc.setFillColor(...soft);doc.setDrawColor(...line);doc.rect(14,y,182,8,'FD');doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(title,17,y+5.3);y+=8};
   const wrapped=(text,width)=>doc.splitTextToSize(String(text||''),width);
-  bar('PROVIDER DETAILS');doc.setDrawColor(...line);doc.rect(14,y,182,25);doc.line(126,y,126,y+25);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(biz.legal_name||biz.name,17,y+6);doc.setFont('helvetica','normal');doc.text(wrapped(`ADDRESS: ${biz.address}`,105),17,y+11);doc.text(`GSTIN/UIN: ${biz.gstin}`,17,y+21);doc.text(`NAME: ${biz.owner||biz.name}`,129,y+7);doc.text(`PH-#: ${biz.phone}`,129,y+13);y+=30;
-  doc.setFillColor(...soft);doc.rect(14,y,82,8,'F');doc.rect(96,y,100,8,'F');doc.rect(14,y,182,47);doc.line(96,y,96,y+47);doc.line(14,y+8,196,y+8);doc.setFont('helvetica','bold');doc.text('INVOICE & PAYMENT METADATA',17,y+5.3);doc.text('BILL TO (CUSTOMER DETAILS)',99,y+5.3);doc.setFont('helvetica','normal');doc.text(`Invoice No.: ${invoice.number}`,17,y+14);doc.text(`Dated: ${new Date(invoice.date+'T00:00:00').toLocaleDateString('en-GB')}`,17,y+20);doc.text('Payment Terms: Due upon receipt',17,y+26);doc.text(`Place of Supply: ${invoice.place||''}`,17,y+32);doc.setFont('helvetica','bold');doc.text(`Total Amount Due: INR ${Number(invoice.totals.total).toFixed(2)}`,17,y+41);doc.text(wrapped(`Bill To: ${customer?.name||'Customer'}`,92),99,y+14);doc.setFont('helvetica','normal');doc.text(wrapped(`Address: ${customer?.address||''}`,92),99,y+20);doc.text(`GSTIN: ${customer?.gstin||'-'}`,99,y+33);doc.text(`Phone: ${customer?.phone||'-'}`,99,y+39);y+=52;
+  bar('PROVIDER DETAILS');doc.setDrawColor(...line);doc.rect(14,y,182,25);doc.line(126,y,126,y+25);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(biz.legal_name||biz.name,17,y+6);doc.setFont('helvetica','normal');doc.text(wrapped(biz.address?`ADDRESS: ${biz.address}`:'ADDRESS: -',105),17,y+11);doc.text(`GSTIN/UIN: ${biz.gstin||'-'}`,17,y+21);doc.text(`CONTACT: ${biz.owner||biz.name}`,129,y+7);doc.text(`PH: ${biz.phone||'-'}`,129,y+13);if(biz.email)doc.text(`EMAIL: ${biz.email}`,129,y+19);y+=30;
+  doc.setFillColor(...soft);doc.rect(14,y,82,8,'F');doc.rect(96,y,100,8,'F');doc.rect(14,y,182,47);doc.line(96,y,96,y+47);doc.line(14,y+8,196,y+8);doc.setFont('helvetica','bold');doc.text('INVOICE & PAYMENT METADATA',17,y+5.3);doc.text('BILL TO (CUSTOMER DETAILS)',99,y+5.3);doc.setFont('helvetica','normal');doc.text(`Invoice No.: ${invoice.number}`,17,y+14);doc.text(`Dated: ${new Date(invoice.date+'T00:00:00').toLocaleDateString('en-GB')}`,17,y+20);doc.text('Payment Terms: Due upon receipt',17,y+26);doc.text(`Place of Supply: ${invoice.place||'-'}`,17,y+32);doc.setFont('helvetica','bold');doc.text(`Total Amount Due: INR ${Number(invoice.totals.total).toFixed(2)}`,17,y+41);doc.text(wrapped(`Bill To: ${customer?.name||'Customer'}`,92),99,y+14);doc.setFont('helvetica','normal');doc.text(wrapped(`Address: ${customer?.address||'-'}`,92),99,y+20);doc.text(`GSTIN: ${customer?.gstin||'-'}`,99,y+33);doc.text(`Phone: ${customer?.phone||'-'}`,99,y+39);y+=52;
   const cols=[14,40,126,144,169,196];doc.setFillColor(...ink);doc.rect(14,y,182,9,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('Date',17,y+6);doc.text('Description',43,y+6);doc.text('Qty',135,y+6,{align:'center'});doc.text('Rate',166,y+6,{align:'right'});doc.text('Amount',193,y+6,{align:'right'});y+=9;doc.setTextColor(...ink);doc.setFont('helvetica','normal');
   invoice.lines.forEach((item,index)=>{const calc=lineCalc(item),desc=wrapped(item.description||'Item / service',80),h=Math.max(13,desc.length*4.2+5);doc.setDrawColor(...line);doc.rect(14,y,182,h);cols.slice(1,-1).forEach(x=>doc.line(x,y,x,y+h));if(index===0)doc.text(new Date(invoice.date+'T00:00:00').toLocaleDateString('en-GB'),17,y+6);doc.setFont('helvetica','bold');doc.text(desc,43,y+6);doc.setFont('helvetica','normal');doc.text(String(item.qty),135,y+6,{align:'center'});doc.text(Number(item.rate).toFixed(2),166,y+6,{align:'right'});doc.text(`INR ${calc.base.toFixed(2)}`,193,y+6,{align:'right'});doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`GST ${item.tax}%`,43,y+h-3);doc.setFontSize(8);doc.setTextColor(...ink);y+=h});
   const summary=[['Subtotal',invoice.totals.subtotal],['Discount',-invoice.totals.discount],['GST',invoice.totals.tax]];summary.forEach(([label,value])=>{doc.setDrawColor(...line);doc.rect(126,y,70,7);doc.text(label,129,y+4.8);doc.text(`INR ${Number(value).toFixed(2)}`,193,y+4.8,{align:'right'});y+=7});doc.setFillColor(...soft);doc.setDrawColor(...ink);doc.rect(14,y,182,10,'FD');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Total Amount Due',43,y+6.7);doc.text(`INR ${Number(invoice.totals.total).toFixed(2)}`,193,y+6.7,{align:'right'});y+=15;
-  doc.setFontSize(8);bar('PAYMENT & SETTLEMENT SUMMARY');const rows=[['Total Amount (In Words)',numberWords(invoice.totals.total)],['Bank Name',biz.bank],['Branch',biz.branch],['Account No',biz.account],['IFSC Code',biz.ifsc]];rows.forEach(([label,value])=>{doc.setDrawColor(...line);doc.rect(14,y,182,8);doc.line(75,y,75,y+8);doc.setFont('helvetica','bold');doc.text(label,17,y+5.3);doc.setFont('helvetica','normal');doc.text(value,78,y+5.3);y+=8});
-  doc.setFont('helvetica','italic');doc.setTextColor(...muted);doc.text(invoice.notes||'Thanks for letting us serve you!',105,Math.min(y+10,278),{align:'center'});doc.setDrawColor(...line);doc.line(14,287,196,287);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(`${biz.name} - Invoice ${invoice.number}`,14,292);doc.text('Page 1 of 1',196,292,{align:'right'});
+  doc.setFontSize(8);
+  if(biz.bank||biz.account){
+    bar('PAYMENT & SETTLEMENT SUMMARY');
+    const rows=[['Total Amount (In Words)',numberWords(invoice.totals.total)],['Bank Name',biz.bank||'-'],['Branch',biz.branch||'-'],['Account No',biz.account||'-'],['IFSC Code',biz.ifsc||'-']];
+    rows.forEach(([label,value])=>{doc.setDrawColor(...line);doc.rect(14,y,182,8);doc.line(75,y,75,y+8);doc.setFont('helvetica','bold');doc.text(label,17,y+5.3);doc.setFont('helvetica','normal');doc.text(value,78,y+5.3);y+=8});
+  }else{
+    bar('PAYMENT & SETTLEMENT SUMMARY');
+    doc.setDrawColor(...line);doc.rect(14,y,182,8);doc.line(75,y,75,y+8);doc.setFont('helvetica','bold');doc.text('Total Amount (In Words)',17,y+5.3);doc.setFont('helvetica','normal');doc.text(numberWords(invoice.totals.total),78,y+5.3);y+=8;
+  }
+  doc.setFont('helvetica','italic');doc.setTextColor(...muted);doc.text(invoice.notes||`Thank you for choosing ${biz.name}.`,105,Math.min(y+10,278),{align:'center'});doc.setDrawColor(...line);doc.line(14,287,196,287);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(`${biz.name} - Invoice ${invoice.number}`,14,292);doc.text('Page 1 of 1',196,292,{align:'right'});
   doc.save(`${String(invoice.number||'invoice').replaceAll('/','-')}.pdf`);toast('Invoice PDF downloaded');
 }
 
@@ -602,10 +609,37 @@ async function boot(){
     await window.billingBackend.ready;
     const context=await window.billingBackend.waitForCompany();
     storageKey=`${KEY}:${context.company.id}`;
+    draft={lines:[]};
+
     const cloudState=await window.billingBackend.loadState();
     const cachedState=JSON.parse(localStorage.getItem(storageKey)||'null');
-    state=cloudState||cachedState||structuredClone(defaults);
-    if(!cloudState)save();
+
+    if(cloudState&&Array.isArray(cloudState.customers)&&cloudState.customers.length){
+      state=cloudState;
+    }else if(cachedState&&Array.isArray(cachedState.customers)&&cachedState.customers.length){
+      state=cachedState;
+    }else{
+      // Clean isolated state for each new company
+      const isDefaultSkone=(context.company.name||'').toLowerCase().includes('sk one');
+      state={
+        customers:[{id:crypto.randomUUID(),name:'Walk-in Customer',phone:'',gstin:'',address:''}],
+        items: isDefaultSkone ? [
+          {id:crypto.randomUUID(),name:'Computer / Laptop Repair',rate:750,tax:18},
+          {id:crypto.randomUUID(),name:'Remote Technical Support',rate:500,tax:18},
+          {id:crypto.randomUUID(),name:'Windows Installation',rate:800,tax:18}
+        ] : [],
+        invoices:[]
+      };
+      save();
+    }
+
+    if(!Array.isArray(state.customers)) state.customers=[];
+    if(!state.customers.length){
+      state.customers.push({id:crypto.randomUUID(),name:'Walk-in Customer',phone:'',gstin:'',address:''});
+    }
+    if(!Array.isArray(state.items)) state.items=[];
+    if(!Array.isArray(state.invoices)) state.invoices=[];
+
     updateBrandDisplay();
     $('#signOutBtn').onclick=()=>window.billingBackend.signOut();
     renderDashboard();renderCustomers();renderItems();addSavedDownloadButtons();

@@ -42,7 +42,7 @@
 
   <div class="app-shell is-hidden" id="appShell">
     <aside class="sidebar">
-      <div class="brand">
+      <div class="brand" id="brandContainer">
         <img id="sidebarLogo" src="assets/skone-logo.webp" alt="Company logo">
       </div>
       <nav>
@@ -103,14 +103,14 @@
               <label>Invoice number<input id="invoiceNo" readonly></label>
               <label>Invoice date<input type="date" id="invoiceDate"></label>
               <label class="wide">Customer<select id="invoiceCustomer"></select></label>
-              <label>Place of supply<input id="placeSupply" value="Haryana"></label>
+              <label>Place of supply<input id="placeSupply" placeholder="e.g. Haryana / Delhi"></label>
               <label>Payment status<select id="paymentStatus"><option>Pending</option><option>Paid</option><option>Partially Paid</option></select></label>
             </div>
             <div class="section-title"><span>2</span><div><h3>Items & services</h3><p>Add products, repairs or support work</p></div></div>
             <div id="lineItems"></div>
             <button class="add-line" id="addLine">＋ Add another item</button>
             <div class="section-title"><span>3</span><div><h3>Notes</h3><p>Optional message for your customer</p></div></div>
-            <textarea id="invoiceNotes" rows="3" placeholder="Thank you for choosing SK One Tech Support."></textarea>
+            <textarea id="invoiceNotes" rows="3" placeholder="Thank you for your business."></textarea>
           </div>
           <aside class="panel summary-panel">
             <div class="panel-head"><div><h3>Invoice summary</h3><p>Live calculation</p></div></div>
