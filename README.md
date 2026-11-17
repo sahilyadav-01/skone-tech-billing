@@ -6,6 +6,9 @@ A lightweight browser-based billing application for creating GST invoices for co
 
 ## Features
 
+- Email/password authentication with a private company workspace
+- Multi-company data isolation enforced by Supabase Row Level Security
+- Cloud sync across devices through Supabase
 - Create invoices with customer, supply location, payment status, and notes
 - Add multiple products or services with quantity, rate, discount, and GST
 - Live subtotal, discount, tax, and grand-total calculations
@@ -14,6 +17,16 @@ A lightweight browser-based billing application for creating GST invoices for co
 - Save customers, reusable items, and invoices in the browser
 - Track revenue, pending payments, and recent invoices on the dashboard
 - Responsive layout for desktop and mobile screens
+
+## Supabase setup
+
+1. Create a Supabase project.
+2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql).
+3. Copy the project URL and public anon key from **Project Settings > API**.
+4. For local development, add the values to `supabase-config.js`.
+5. In **Authentication > URL Configuration**, add the local and deployed URLs.
+
+Never put the Supabase service-role key in browser code or Vercel environment variables used by this app.
 
 ## Run locally
 
@@ -57,9 +70,19 @@ Saved invoices also have their own **Download PDF** action.
 
 ## Data storage
 
-Customer, item, and invoice data is stored in the browser using `localStorage` under the key `skoneBillingV1`. Data is not uploaded to a server by this application.
+Customer, item, and invoice data is stored in the authenticated company's `company_data` record in Supabase. A company-scoped browser cache is retained for resilience.
 
-Clearing the browser's site data will remove saved billing records. Back up important invoices as PDFs.
+Supabase Row Level Security checks the signed-in user's company membership before allowing access. Back up important invoices as PDFs.
+
+## Deploy to Vercel
+
+1. Import the GitHub repository into Vercel.
+2. Keep the framework preset as **Other** and leave the build command empty.
+3. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` in Vercel Project Settings > Environment Variables.
+4. Deploy the project.
+5. Add the Vercel production URL to Supabase Authentication > URL Configuration.
+
+`api/config.js` exposes only the public Supabase URL and anon key to the browser. Database security remains enforced by Supabase RLS.
 
 ## PDF dependency
 

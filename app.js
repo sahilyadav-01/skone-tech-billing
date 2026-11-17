@@ -1,13 +1,14 @@
 const KEY='skoneBillingV1';
 const defaults={customers:[{id:crypto.randomUUID(),name:'Walk-in Customer',phone:'',gstin:'',address:''}],items:[{id:crypto.randomUUID(),name:'Computer / Laptop Repair',rate:750,tax:18},{id:crypto.randomUUID(),name:'Remote Technical Support',rate:500,tax:18},{id:crypto.randomUUID(),name:'Windows Installation',rate:800,tax:18}],invoices:[]};
-let state=JSON.parse(localStorage.getItem(KEY)||'null')||defaults;
+let state=structuredClone(defaults);
+let storageKey=KEY;
 let draft={lines:[]};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
-const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const save=()=>{localStorage.setItem(storageKey,JSON.stringify(state));window.billingBackend?.saveState(state).catch(error=>toast(`Cloud sync failed: ${error.message}`))};
 const toast=t=>{const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)};
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-function showView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view===id));const titles={dashboard:['OVERVIEW','Good day, Sahil'],invoice:['CREATE','New invoice'],invoices:['RECORDS','Invoices'],customers:['DIRECTORY','Customers'],items:['CATALOGUE','Items & services']};$('#eyebrow').textContent=titles[id][0];$('#pageTitle').textContent=titles[id][1];$('.sidebar').classList.remove('open');if(id==='invoice')initInvoice();if(id==='invoices')renderInvoices();if(id==='customers')renderCustomers();if(id==='items')renderItems();}
+function showView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view===id));const company=window.billingBackend?.company?.name||'Your company';const titles={dashboard:['OVERVIEW',company],invoice:['CREATE','New invoice'],invoices:['RECORDS','Invoices'],customers:['DIRECTORY','Customers'],items:['CATALOGUE','Items & services']};$('#eyebrow').textContent=titles[id][0];$('#pageTitle').textContent=titles[id][1];$('.sidebar').classList.remove('open');if(id==='invoice')initInvoice();if(id==='invoices')renderInvoices();if(id==='customers')renderCustomers();if(id==='items')renderItems();}
 $$('.nav-item').forEach(b=>b.onclick=()=>showView(b.dataset.view));$$('[data-open-invoice]').forEach(b=>b.onclick=()=>showView('invoice'));$$('[data-view-link]').forEach(b=>b.onclick=()=>showView(b.dataset.viewLink));$('#menuBtn').onclick=()=>$('.sidebar').classList.toggle('open');
 $('#today').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
 function invoiceNumber(){return `SK-${new Date().getFullYear()}-${String(state.invoices.length+1).padStart(4,'0')}`}
@@ -86,4 +87,22 @@ function addSavedDownloadButtons(){
 }
 new MutationObserver(addSavedDownloadButtons).observe($('#invoiceList'),{childList:true,subtree:true});
 
-renderDashboard();renderCustomers();renderItems();addSavedDownloadButtons();
+async function boot(){
+  try{
+    await window.billingBackend.ready;
+    const context=await window.billingBackend.waitForCompany();
+    storageKey=`${KEY}:${context.company.id}`;
+    const cloudState=await window.billingBackend.loadState();
+    const cachedState=JSON.parse(localStorage.getItem(storageKey)||'null');
+    state=cloudState||cachedState||structuredClone(defaults);
+    if(!cloudState)save();
+    $('#pageTitle').textContent=context.company.name;
+    $('#signOutBtn').onclick=()=>window.billingBackend.signOut();
+    renderDashboard();renderCustomers();renderItems();addSavedDownloadButtons();
+  }catch(error){
+    console.error(error);
+    const message=document.getElementById('authMessage');
+    if(message){message.textContent=error.message||'Could not load the company workspace.';message.className='auth-message error'}
+  }
+}
+boot();
