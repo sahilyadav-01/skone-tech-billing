@@ -112,8 +112,10 @@
     el('companyName').textContent=company.name;
     el('accountEmail').textContent=user.email||'';
     const switcher=el('companySwitcher');
-    switcher.innerHTML=companies.map(item=>`<option value="${item.company.id}" ${item.company.id===company.id?'selected':''}>${item.company.name}</option>`).join('');
-    switcher.onchange=()=>switchCompany(switcher.value);
+    if(switcher){
+      switcher.innerHTML=companies.map(item=>`<option value="${item.company.id}" ${item.company.id===company.id?'selected':''}>${item.company.name}</option>`).join('');
+      switcher.onchange=()=>switchCompany(switcher.value);
+    }
     const sidebarLogo=el('sidebarLogo');
     if(sidebarLogo){
       sidebarLogo.src=company.logo_data||'assets/skone-logo.webp';

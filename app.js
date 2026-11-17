@@ -557,46 +557,6 @@ function initCompanyEvents(){
     };
   }
 
-  const addCompBtn=$('#addCompanyBtn');
-  const compModal=$('#companyModal');
-  const closeCompModal=$('#closeCompanyModal');
-  const createCompForm=$('#createCompanyForm');
-
-  if(addCompBtn&&compModal){
-    addCompBtn.onclick=()=>{
-      compModal.classList.remove('is-hidden');
-      $('#newCompanyName').value='';
-      $('#createCompanyMessage').textContent='';
-      $('#newCompanyName').focus();
-    };
-  }
-  if(closeCompModal&&compModal){
-    closeCompModal.onclick=()=>compModal.classList.add('is-hidden');
-  }
-  if(compModal){
-    compModal.onclick=e=>{
-      if(e.target===compModal)compModal.classList.add('is-hidden');
-    };
-  }
-  if(createCompForm){
-    createCompForm.onsubmit=async e=>{
-      e.preventDefault();
-      const name=$('#newCompanyName').value.trim();
-      const msg=$('#createCompanyMessage');
-      const btn=$('#createCompanySubmit');
-      btn.disabled=true;
-      msg.textContent='Creating company workspace...';
-      msg.className='profile-message';
-      try{
-        await window.billingBackend.createCompany(name);
-      }catch(err){
-        msg.textContent=err.message||'Failed to create company';
-        msg.className='profile-message error';
-        btn.disabled=false;
-      }
-    };
-  }
-
   const compNameLink=$('#companyName');
   if(compNameLink){
     compNameLink.onclick=()=>showView('company');
