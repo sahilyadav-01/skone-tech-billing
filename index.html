@@ -11,8 +11,7 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">SK</div>
-        <div><strong>SK One Tech</strong><span>Smart Billing</span></div>
+        <img src="assets/skone-logo.webp" alt="SKONE Tech Support">
       </div>
       <nav>
         <button class="nav-item active" data-view="dashboard"><span>⌂</span> Dashboard</button>
@@ -71,6 +70,7 @@
             <div class="panel-head"><div><h3>Invoice summary</h3><p>Live calculation</p></div></div>
             <div class="totals"><div><span>Subtotal</span><b id="sumSubtotal">₹0.00</b></div><div><span>Discount</span><b id="sumDiscount">− ₹0.00</b></div><div><span>GST</span><b id="sumTax">₹0.00</b></div><div class="grand"><span>Grand total</span><strong id="sumGrand">₹0.00</strong></div></div>
             <button class="primary full" id="saveInvoice">Save invoice</button>
+            <button class="outline full" id="downloadDraft">Download PDF</button>
             <button class="outline full" id="printDraft">Print preview</button>
             <p class="privacy-note">Your billing data stays in this browser.</p>
           </aside>
@@ -100,6 +100,7 @@
     </main>
   </div>
   <div id="toast" role="status"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="app.js"></script>
 </body>
 </html>
