@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href="auth.css">
   <link rel="stylesheet" href="company.css">
 </head>
+
 <body>
   <section class="auth-screen" id="authScreen">
     <div class="auth-showcase">
@@ -37,14 +39,17 @@
           <button id="signupTab" type="button">Create account</button>
         </div>
         <form id="authForm">
-          <label class="company-field" id="companyField">Company name<input id="authCompany" autocomplete="organization" placeholder="Your company name"></label>
-          <label>Email address<input id="authEmail" type="email" autocomplete="email" required placeholder="you@company.com"></label>
+          <label class="company-field" id="companyField">Company name<input id="authCompany" autocomplete="organization"
+              placeholder="Your company name"></label>
+          <label>Email address<input id="authEmail" type="email" autocomplete="email" required
+              placeholder="you@company.com"></label>
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
               <label for="authPassword" style="margin:0;font-weight:600;font-size:12px;color:#56645e">Password</label>
               <button type="button" id="togglePasswordBtn" class="toggle-pass-btn">Show</button>
             </div>
-            <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Minimum 6 characters">
+            <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required
+              placeholder="Minimum 6 characters">
           </div>
           <div class="auth-options">
             <button type="button" class="text-link" id="forgotPasswordBtn">Forgot password?</button>
@@ -74,7 +79,8 @@
       </nav>
       <div class="sidebar-foot">
         <span class="status-dot"></span> Synced with Supabase
-        <strong id="companyName" style="cursor:pointer;margin-top:14px" title="Manage company profile">Company workspace</strong>
+        <strong id="companyName" style="cursor:pointer;margin-top:14px" title="Manage company profile">Company
+          workspace</strong>
         <small id="accountEmail"></small>
         <button class="sign-out" id="signOutBtn" type="button">Sign out</button>
       </div>
@@ -83,8 +89,12 @@
     <main>
       <header class="topbar">
         <button class="menu" id="menuBtn" aria-label="Open menu">☰</button>
-        <div><p id="eyebrow">OVERVIEW</p><h1 id="pageTitle">Good day, Sahil</h1></div>
-        <div class="top-actions"><span id="today"></span><button class="primary" data-open-invoice>＋ Create invoice</button></div>
+        <div>
+          <p id="eyebrow">OVERVIEW</p>
+          <h1 id="pageTitle">Good day, Sahil</h1>
+        </div>
+        <div class="top-actions"><span id="today"></span><button class="primary" data-open-invoice>＋ Create
+            invoice</button></div>
       </header>
 
       <section class="view active" id="dashboard">
@@ -98,39 +108,82 @@
               <button class="light-btn outline-hero" data-view-link="company">⚙ Company Profile & Logo</button>
             </div>
           </div>
-          <div class="hero-total"><small>This month</small><strong id="monthRevenue">₹0</strong><span id="monthCount">0 invoices issued</span></div>
+          <div class="hero-total"><small>This month</small><strong id="monthRevenue">₹0</strong><span id="monthCount">0
+              invoices issued</span></div>
         </div>
         <div class="stats">
-          <article><span class="icon green">₹</span><div><small>Total revenue</small><strong id="totalRevenue">₹0</strong><em>All recorded invoices</em></div></article>
-          <article><span class="icon amber">◷</span><div><small>Pending payment</small><strong id="pendingRevenue">₹0</strong><em id="pendingCount">0 unpaid invoices</em></div></article>
-          <article><span class="icon blue">♙</span><div><small>Customers</small><strong id="customerCount">0</strong><em>Saved contacts</em></div></article>
+          <article><span class="icon green">₹</span>
+            <div><small>Total revenue</small><strong id="totalRevenue">₹0</strong><em>All recorded invoices</em></div>
+          </article>
+          <article><span class="icon amber">◷</span>
+            <div><small>Pending payment</small><strong id="pendingRevenue">₹0</strong><em id="pendingCount">0 unpaid
+                invoices</em></div>
+          </article>
+          <article><span class="icon blue">♙</span>
+            <div><small>Customers</small><strong id="customerCount">0</strong><em>Saved contacts</em></div>
+          </article>
         </div>
         <div class="panel">
-          <div class="panel-head"><div><h3>Recent invoices</h3><p>Your latest billing activity</p></div><button class="text-btn" data-view-link="invoices">View all →</button></div>
-          <div id="recentInvoices" class="empty-state"><b>No invoices yet</b><span>Create an invoice and it will appear here.</span></div>
+          <div class="panel-head">
+            <div>
+              <h3>Recent invoices</h3>
+              <p>Your latest billing activity</p>
+            </div><button class="text-btn" data-view-link="invoices">View all →</button>
+          </div>
+          <div id="recentInvoices" class="empty-state"><b>No invoices yet</b><span>Create an invoice and it will appear
+              here.</span></div>
         </div>
       </section>
 
       <section class="view" id="invoice">
         <div class="invoice-grid">
           <div class="panel form-panel">
-            <div class="section-title"><span>1</span><div><h3>Invoice details</h3><p>Customer and billing information</p></div></div>
+            <div class="section-title"><span>1</span>
+              <div>
+                <h3>Invoice details</h3>
+                <p>Customer and billing information</p>
+              </div>
+            </div>
             <div class="form-grid">
               <label>Invoice number<input id="invoiceNo" readonly></label>
               <label>Invoice date<input type="date" id="invoiceDate"></label>
               <label class="wide">Customer<select id="invoiceCustomer"></select></label>
               <label>Place of supply<input id="placeSupply" placeholder="e.g. Haryana / Delhi"></label>
-              <label>Payment status<select id="paymentStatus"><option>Pending</option><option>Paid</option><option>Partially Paid</option></select></label>
+              <label>Payment status<select id="paymentStatus">
+                  <option>Pending</option>
+                  <option>Paid</option>
+                  <option>Partially Paid</option>
+                </select></label>
             </div>
-            <div class="section-title"><span>2</span><div><h3>Items & services</h3><p>Add products, repairs or support work</p></div></div>
+            <div class="section-title"><span>2</span>
+              <div>
+                <h3>Items & services</h3>
+                <p>Add products, repairs or support work</p>
+              </div>
+            </div>
             <div id="lineItems"></div>
             <button class="add-line" id="addLine">＋ Add another item</button>
-            <div class="section-title"><span>3</span><div><h3>Notes</h3><p>Optional message for your customer</p></div></div>
+            <div class="section-title"><span>3</span>
+              <div>
+                <h3>Notes</h3>
+                <p>Optional message for your customer</p>
+              </div>
+            </div>
             <textarea id="invoiceNotes" rows="3" placeholder="Thank you for your business."></textarea>
           </div>
           <aside class="panel summary-panel">
-            <div class="panel-head"><div><h3>Invoice summary</h3><p>Live calculation</p></div></div>
-            <div class="totals"><div><span>Subtotal</span><b id="sumSubtotal">₹0.00</b></div><div><span>Discount</span><b id="sumDiscount">− ₹0.00</b></div><div><span>GST</span><b id="sumTax">₹0.00</b></div><div class="grand"><span>Grand total</span><strong id="sumGrand">₹0.00</strong></div></div>
+            <div class="panel-head">
+              <div>
+                <h3>Invoice summary</h3>
+                <p>Live calculation</p>
+              </div>
+            </div>
+            <div class="totals">
+              <div><span>Subtotal</span><b id="sumSubtotal">₹0.00</b></div>
+              <div><span>Discount</span><b id="sumDiscount">− ₹0.00</b></div>
+              <div><span>GST</span><b id="sumTax">₹0.00</b></div>
+              <div class="grand"><span>Grand total</span><strong id="sumGrand">₹0.00</strong></div>
+            </div>
             <button class="primary full" id="saveInvoice">Save invoice</button>
             <button class="outline full" id="downloadDraft">Download PDF</button>
             <button class="outline full" id="printDraft">Print preview</button>
@@ -141,27 +194,69 @@
 
       <section class="view" id="invoices">
         <div class="panel">
-          <div class="panel-head"><div><h3>All invoices</h3><p>Search, review and print previous bills</p></div><input class="search" id="invoiceSearch" placeholder="Search invoice or customer…"></div>
+          <div class="panel-head">
+            <div>
+              <h3>All invoices</h3>
+              <p>Search, review and print previous bills</p>
+            </div><input class="search" id="invoiceSearch" placeholder="Search invoice or customer…">
+          </div>
           <div id="invoiceList" class="empty-state"></div>
         </div>
       </section>
 
       <section class="view" id="customers">
         <div class="split-layout">
-          <form class="panel form-card" id="customerForm"><h3>Add customer</h3><p>Save details for faster invoicing.</p><label>Name<input id="customerName" required placeholder="Customer / company name"></label><label>Phone<input id="customerPhone" placeholder="+91 98765 43210"></label><label>GSTIN<input id="customerGstin" placeholder="Optional GST number"></label><label>Address<textarea id="customerAddress" rows="3" placeholder="Billing address"></textarea></label><button class="primary full">Save customer</button></form>
-          <div class="panel"><div class="panel-head"><div><h3>Customers</h3><p>Your saved contacts</p></div></div><div id="customerList" class="card-list"></div></div>
+          <form class="panel form-card" id="customerForm">
+            <h3>Add customer</h3>
+            <p>Save details for faster invoicing.</p><label>Name<input id="customerName" required
+                placeholder="Customer / company name"></label><label>Phone<input id="customerPhone"
+                placeholder="+91 98765 43210"></label><label>GSTIN<input id="customerGstin"
+                placeholder="Optional GST number"></label><label>Address<textarea id="customerAddress" rows="3"
+                placeholder="Billing address"></textarea></label><button class="primary full">Save customer</button>
+          </form>
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h3>Customers</h3>
+                <p>Your saved contacts</p>
+              </div>
+            </div>
+            <div id="customerList" class="card-list"></div>
+          </div>
         </div>
       </section>
 
       <section class="view" id="items">
         <div class="split-layout">
-          <form class="panel form-card" id="itemForm"><h3>Add item or service</h3><p>Build a reusable price list.</p><label>Name<input id="itemName" required placeholder="Laptop repair / RAM / AMC"></label><label>Rate (₹)<input id="itemRate" type="number" min="0" required placeholder="0"></label><label>GST rate<select id="itemTax"><option value="0">0%</option><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option></select></label><button class="primary full">Save item</button></form>
-          <div class="panel"><div class="panel-head"><div><h3>Items & services</h3><p>Your reusable catalogue</p></div></div><div id="itemList" class="card-list"></div></div>
+          <form class="panel form-card" id="itemForm">
+            <h3>Add item or service</h3>
+            <p>Build a reusable price list.</p><label>Name<input id="itemName" required
+                placeholder="Laptop repair / RAM / AMC"></label><label>Rate (₹)<input id="itemRate" type="number"
+                min="0" required placeholder="0"></label><label>GST rate<select id="itemTax">
+                <option value="0">0%</option>
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18" selected>18%</option>
+                <option value="28">28%</option>
+              </select></label><button class="primary full">Save item</button>
+          </form>
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h3>Items & services</h3>
+                <p>Your reusable catalogue</p>
+              </div>
+            </div>
+            <div id="itemList" class="card-list"></div>
+          </div>
         </div>
       </section>
       <section class="view" id="company">
         <div class="company-page-head">
-          <div><span class="pill dark">COMPANY SETTINGS</span><h2>Company profile</h2><p>These details appear on invoices for the selected company.</p></div>
+          <div><span class="pill dark">COMPANY SETTINGS</span>
+            <h2>Company profile</h2>
+            <p>These details appear on invoices for the selected company.</p>
+          </div>
           <span class="role-badge" id="companyRole">OWNER</span>
         </div>
         <div class="company-layout">
@@ -169,7 +264,10 @@
             <div class="profile-section">
               <div class="logo-editor">
                 <img id="companyLogoPreview" src="assets/skone-logo.webp" alt="Company logo preview">
-                <div><label class="upload-button" for="companyLogo">Choose logo</label><input id="companyLogo" type="file" accept="image/png,image/jpeg,image/webp" hidden><small>PNG, JPG or WebP. Maximum 500 KB.</small><button class="text-btn remove-logo" id="removeCompanyLogo" type="button">Use default logo</button></div>
+                <div><label class="upload-button" for="companyLogo">Choose logo</label><input id="companyLogo"
+                    type="file" accept="image/png,image/jpeg,image/webp" hidden><small>PNG, JPG or WebP. Maximum 500
+                    KB.</small><button class="text-btn remove-logo" id="removeCompanyLogo" type="button">Use default
+                    logo</button></div>
               </div>
             </div>
             <div class="profile-section">
@@ -213,7 +311,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="auth.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
