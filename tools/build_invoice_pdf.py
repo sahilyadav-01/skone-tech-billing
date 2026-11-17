@@ -7,7 +7,6 @@ from decimal import Decimal
 from pathlib import Path
 
 from openpyxl import load_workbook
-from reportlab.graphics.shapes import Circle, Drawing, Rect, String
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
@@ -17,6 +16,7 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
+    Image as RLImage,
     KeepTogether,
     PageTemplate,
     Paragraph,
@@ -128,17 +128,13 @@ def load_invoice(path: Path) -> dict:
     }
 
 
-def make_logo() -> Drawing:
-    drawing = Drawing(62, 42)
-    drawing.add(Rect(0, 0, 42, 42, rx=7, ry=7, fillColor=NAVY, strokeColor=NAVY))
-    drawing.add(Circle(35, 7, 4.2, fillColor=ACCENT, strokeColor=ACCENT))
-    drawing.add(String(21, 15, "SK", fontName="Helvetica-Bold", fontSize=18, fillColor=WHITE, textAnchor="middle"))
-    drawing.add(String(48, 24, "ONE", fontName="Helvetica-Bold", fontSize=7.5, fillColor=NAVY))
-    drawing.add(String(48, 14, "TECH", fontName="Helvetica", fontSize=6.7, fillColor=MUTED))
-    return drawing
+def make_logo(path: Path) -> RLImage:
+    logo = RLImage(str(path), width=145, height=56.2)
+    logo.hAlign = "LEFT"
+    return logo
 
 
-def build_pdf(invoice: dict, output_path: Path) -> None:
+def build_pdf(invoice: dict, output_path: Path, logo_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     page_w, page_h = A4
     left = right = 17 * mm
@@ -211,10 +207,7 @@ def build_pdf(invoice: dict, output_path: Path) -> None:
     usable = page_w - left - right
     story = []
 
-    brand = Table(
-        [[make_logo(), p(invoice["provider"], ParagraphStyle("Brand", parent=base, fontName="Helvetica-Bold", fontSize=10.5, leading=12))]],
-        colWidths=[90, 125],
-    )
+    brand = Table([[make_logo(logo_path)]], colWidths=[215])
     brand.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -337,7 +330,8 @@ def build_pdf(invoice: dict, output_path: Path) -> None:
 def main() -> None:
     source = Path(sys.argv[1])
     output = Path(sys.argv[2])
-    build_pdf(load_invoice(source), output)
+    logo = Path(sys.argv[3])
+    build_pdf(load_invoice(source), output, logo)
     print(output.resolve())
 
 
