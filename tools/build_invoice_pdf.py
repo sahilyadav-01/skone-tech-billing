@@ -273,7 +273,9 @@ def build_pdf(invoice: dict, output_path: Path, logo_path: Path) -> None:
     ]))
     story.extend([meta_table, Spacer(1, 7)])
 
-    service_date = invoice["invoice_date"].strftime("%d %b %Y") if invoice["invoice_date"] else invoice["service_date"]
+    service_date = invoice["service_date"] or (
+        invoice["invoice_date"].strftime("%d %b %Y") if invoice["invoice_date"] else invoice["date_text"]
+    )
     item_table = Table([
         [p("Date", ParagraphStyle("TH", parent=section, textColor=WHITE)),
          p("Description", ParagraphStyle("TH2", parent=section, textColor=WHITE)),
@@ -283,7 +285,7 @@ def build_pdf(invoice: dict, output_path: Path, logo_path: Path) -> None:
         [p(service_date, small), p(f"<b>{invoice['description']}</b>", small), p(invoice["quantity"], center_small),
          p(f"{Decimal(str(invoice['unit_price'])):,.2f}", right_style), p(money(invoice["service_amount"]), right_style)],
         ["", p(invoice["gst_label"], small), "", p("18%", right_style), p(money(invoice["gst_amount"]), right_style)],
-        ["", p("Subtotal (Service Charges with GST)", bold), "", "", p(money(invoice["total"]), right_bold)],
+        ["", p("Subtotal (Service Charges)", bold), "", "", p(money(invoice["service_amount"]), right_bold)],
         ["", p("Total Amount Due", ParagraphStyle("Total", parent=base, fontName="Helvetica-Bold", fontSize=10.2, leading=12)), "", "",
          p(money(invoice["total"]), ParagraphStyle("TotalR", parent=right_bold, fontSize=10.2, leading=12))],
     ], colWidths=[67, 234, 34, 90, usable - 425], repeatRows=1)
