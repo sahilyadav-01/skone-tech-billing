@@ -115,6 +115,39 @@ function invoiceBillingPeriod(invoice){
   return `${displayDate(start)} to ${displayDate(end)}`;
 }
 
+function serviceDate(value,compactMonth=false){
+  if(!value)return '-';
+  const date=new Date(`${value}T00:00:00`);
+  if(Number.isNaN(date.getTime()))return '-';
+  const day=String(date.getDate()).padStart(2,'0');
+  const month=date.toLocaleDateString('en-GB',{month:'short'});
+  return compactMonth?`${day}${month} ${date.getFullYear()}`:`${day} ${month} ${date.getFullYear()}`;
+}
+
+function servicePeriodLabel(invoice){
+  const start=invoice.billingPeriodStart||invoice.date;
+  const end=invoice.billingPeriodEnd||start;
+  return `From  ${serviceDate(start,true)} to ${serviceDate(end)}`;
+}
+
+function billingPeriodDays(invoice){
+  const start=new Date(`${invoice.billingPeriodStart||invoice.date}T00:00:00`);
+  const end=new Date(`${invoice.billingPeriodEnd||invoice.billingPeriodStart||invoice.date}T00:00:00`);
+  if(Number.isNaN(start.getTime())||Number.isNaN(end.getTime()))return 1;
+  return Math.max(1,Math.round((end-start)/86400000)+1);
+}
+
+function pdfLineDescription(invoice,item){
+  let description=String(item.description||'Item / service').trim();
+  const place=String(invoice.place||'').trim();
+  if(place&&!description.toLowerCase().includes(place.toLowerCase()))description+=` for ${place}`;
+  const start=invoice.billingPeriodStart||invoice.date;
+  const end=invoice.billingPeriodEnd||start;
+  const period=`${displayDate(start).replaceAll('/','-')} to ${displayDate(end).replaceAll('/','-')}(${billingPeriodDays(invoice)} days)`;
+  if(!description.includes(displayDate(start).replaceAll('/','-'))&&!/\(\d+\s*days?\)/i.test(description))description+=`  ${period}`;
+  return description;
+}
+
 function validateBillingDates(){
   const billDate=$('#invoiceDate').value;
   const start=$('#billingPeriodStart').value;
@@ -154,7 +187,7 @@ function initInvoice(){
 
 function renderLines(){
   const host=$('#lineItems');
-  host.innerHTML=draft.lines.map((l,i)=>`<div class="line-item" data-id="${l.id}"><div><small>Item / service</small><select data-k="itemId"><option value="">Custom item</option>${state.items.map(x=>`<option value="${x.id}" ${x.id===l.itemId?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div><div><small>Qty</small><input data-k="qty" type="number" min="1" value="${l.qty}"></div><div><small>Rate</small><input data-k="rate" type="number" min="0" value="${l.rate}"></div><div><small>Disc. %</small><input data-k="discount" type="number" min="0" max="100" value="${l.discount}"></div><div class="line-total"><small>Total</small><input readonly value="${money(lineCalc(l).total)}"></div><button class="remove-line" title="Remove">×</button></div>`).join('');
+  host.innerHTML=draft.lines.map((l,i)=>`<div class="line-item" data-id="${l.id}"><div><small>Item / service</small><select data-k="itemId"><option value="">Custom item</option>${state.items.map(x=>`<option value="${x.id}" ${x.id===l.itemId?'selected':''}>${esc(x.name)}</option>`).join('')}</select><small class="description-label">Description</small><input data-k="description" type="text" value="${esc(l.description||'')}" placeholder="Type service description" autocomplete="off"></div><div><small>Qty</small><input data-k="qty" type="number" min="1" value="${l.qty}"></div><div><small>Rate</small><input data-k="rate" type="number" min="0" value="${l.rate}"></div><div><small>Disc. %</small><input data-k="discount" type="number" min="0" max="100" value="${l.discount}"></div><div class="line-total"><small>Total</small><input readonly value="${money(lineCalc(l).total)}"></div><button class="remove-line" title="Remove">×</button></div>`).join('');
   host.querySelectorAll('input[data-k],select[data-k]').forEach(el=>el.onchange=()=>{
     const row=el.closest('.line-item');
     const line=draft.lines.find(x=>x.id===row.dataset.id);
@@ -467,8 +500,8 @@ async function downloadInvoicePdf(invoice,customer){
   const wrapped=(text,width)=>doc.splitTextToSize(String(text||''),width);
   bar('PROVIDER DETAILS');doc.setDrawColor(...line);doc.rect(14,y,182,25);doc.line(126,y,126,y+25);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(biz.legal_name||biz.name,17,y+6);doc.setFont('helvetica','normal');doc.text(wrapped(biz.address?`ADDRESS: ${biz.address}`:'ADDRESS: -',105),17,y+11);doc.text(`GSTIN/UIN: ${biz.gstin||'-'}`,17,y+21);doc.text(`CONTACT: ${biz.owner||biz.name}`,129,y+7);doc.text(`PH: ${biz.phone||'-'}`,129,y+13);if(biz.email)doc.text(`EMAIL: ${biz.email}`,129,y+19);y+=30;
   doc.setFillColor(...soft);doc.rect(14,y,82,8,'F');doc.rect(96,y,100,8,'F');doc.rect(14,y,182,53);doc.line(96,y,96,y+53);doc.line(14,y+8,196,y+8);doc.setFont('helvetica','bold');doc.text('INVOICE & PAYMENT METADATA',17,y+5.3);doc.text('BILL TO (CUSTOMER DETAILS)',99,y+5.3);doc.setFont('helvetica','normal');doc.text(`Invoice No.: ${invoice.number}`,17,y+14);doc.text(`Bill Date: ${displayDate(invoice.date)}`,17,y+20);doc.text(`Billing Period: ${invoiceBillingPeriod(invoice)}`,17,y+26);doc.text('Payment Terms: Due upon receipt',17,y+32);doc.text(`Place of Supply: ${invoice.place||'-'}`,17,y+38);doc.setFont('helvetica','bold');doc.text(`Total Amount Due: INR ${Number(invoice.totals.total).toFixed(2)}`,17,y+47);doc.text(wrapped(`Bill To: ${customer?.name||'Customer'}`,92),99,y+14);doc.setFont('helvetica','normal');doc.text(wrapped(`Address: ${customer?.address||'-'}`,92),99,y+20);doc.text(`GSTIN: ${customer?.gstin||'-'}`,99,y+33);doc.text(`Phone: ${customer?.phone||'-'}`,99,y+39);y+=58;
-  const cols=[14,40,126,144,169,196];doc.setFillColor(...ink);doc.rect(14,y,182,9,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('Date',17,y+6);doc.text('Description',43,y+6);doc.text('Qty',135,y+6,{align:'center'});doc.text('Rate',166,y+6,{align:'right'});doc.text('Amount',193,y+6,{align:'right'});y+=9;doc.setTextColor(...ink);doc.setFont('helvetica','normal');
-  invoice.lines.forEach((item,index)=>{const calc=lineCalc(item),desc=wrapped(item.description||'Item / service',80),h=Math.max(13,desc.length*4.2+5);doc.setDrawColor(...line);doc.rect(14,y,182,h);cols.slice(1,-1).forEach(x=>doc.line(x,y,x,y+h));if(index===0)doc.text(wrapped(invoiceBillingPeriod(invoice),20),17,y+6);doc.setFont('helvetica','bold');doc.text(desc,43,y+6);doc.setFont('helvetica','normal');doc.text(String(item.qty),135,y+6,{align:'center'});doc.text(Number(item.rate).toFixed(2),166,y+6,{align:'right'});doc.text(`INR ${calc.base.toFixed(2)}`,193,y+6,{align:'right'});doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`GST ${item.tax}%`,43,y+h-3);doc.setFontSize(8);doc.setTextColor(...ink);y+=h});
+  const cols=[14,73,134,160,196];doc.setFillColor(...ink);doc.rect(14,y,182,9,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('Date',43.5,y+6,{align:'center'});doc.text('Description',103.5,y+6,{align:'center'});doc.text('Unit Price',147,y+6,{align:'center'});doc.text('Amount',178,y+6,{align:'center'});y+=9;doc.setTextColor(...ink);
+  invoice.lines.forEach((item,index)=>{const calc=lineCalc(item),dateLines=wrapped(index===0?servicePeriodLabel(invoice):'',53),desc=wrapped(pdfLineDescription(invoice,item),55),h=Math.max(22,dateLines.length*4.2+8,desc.length*4.2+8);doc.setDrawColor(...line);doc.rect(14,y,182,h);cols.slice(1,-1).forEach(x=>doc.line(x,y,x,y+h));doc.setFont('helvetica','bold');doc.text(dateLines,17,y+8);doc.text(desc,76,y+8);doc.text(Number(item.rate).toFixed(0),157,y+8,{align:'right'});doc.text(`INR ${calc.base.toFixed(2)}`,193,y+8,{align:'right'});doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`GST ${item.tax}%`,76,y+h-3);doc.setFontSize(8);doc.setTextColor(...ink);y+=h});
   const summary=[['Subtotal',invoice.totals.subtotal],['Discount',-invoice.totals.discount],['GST',invoice.totals.tax]];summary.forEach(([label,value])=>{doc.setDrawColor(...line);doc.rect(126,y,70,7);doc.text(label,129,y+4.8);doc.text(`INR ${Number(value).toFixed(2)}`,193,y+4.8,{align:'right'});y+=7});doc.setFillColor(...soft);doc.setDrawColor(...ink);doc.rect(14,y,182,10,'FD');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Total Amount Due',43,y+6.7);doc.text(`INR ${Number(invoice.totals.total).toFixed(2)}`,193,y+6.7,{align:'right'});y+=15;
   doc.setFontSize(8);
   if(biz.bank||biz.account){
