@@ -3,6 +3,7 @@ let state={customers:[],items:[],invoices:[]};
 let storageKey=KEY;
 let draft={lines:[]};
 let currentLogoData='';
+let editingInvoiceId=null;
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -94,7 +95,13 @@ $('#today').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',mon
 
 function invoiceNumber(){
   const prefix=(window.billingBackend?.company?.invoice_prefix||'INV').replace(/[^A-Z0-9-]/gi,'').toUpperCase();
-  return `${prefix}-${new Date().getFullYear()}-${String(state.invoices.length+1).padStart(4,'0')}`;
+  const base=`${prefix}-${new Date().getFullYear()}-`;
+  const highest=state.invoices.reduce((max,invoice)=>{
+    if(!String(invoice.number||'').startsWith(base))return max;
+    const sequence=Number(String(invoice.number).slice(base.length));
+    return Number.isInteger(sequence)?Math.max(max,sequence):max;
+  },0);
+  return `${base}${String(highest+1).padStart(4,'0')}`;
 }
 
 function todayInputValue(){
@@ -164,7 +171,9 @@ function syncBillingPeriodBounds(){
 }
 
 function initInvoice(){
+  editingInvoiceId=null;
   draft={lines:[]};
+  $('#saveInvoice').textContent='Save invoice';
   $('#invoiceNo').value=invoiceNumber();
   const today=todayInputValue();
   $('#invoiceDate').value=today;
@@ -236,8 +245,9 @@ $('#saveInvoice').onclick=()=>{
   if(!validateBillingDates())return;
   if(!draft.lines.some(l=>l.rate>0))return toast('Add an item with a price');
   const custId=$('#invoiceCustomer').value||state.customers[0]?.id;
+  const existingIndex=editingInvoiceId?state.invoices.findIndex(invoice=>invoice.id===editingInvoiceId):-1;
   const inv={
-    id:crypto.randomUUID(),
+    id:existingIndex>=0?editingInvoiceId:crypto.randomUUID(),
     number:$('#invoiceNo').value,
     date:$('#invoiceDate').value,
     billingPeriodStart:$('#billingPeriodStart').value,
@@ -246,13 +256,16 @@ $('#saveInvoice').onclick=()=>{
     place:$('#placeSupply').value.trim(),
     status:$('#paymentStatus').value,
     notes:$('#invoiceNotes').value,
-    lines:draft.lines,
-    totals:draft.totals
+    lines:draft.lines.map(line=>({...line})),
+    totals:{...draft.totals}
   };
-  state.invoices.unshift(inv);
+  if(existingIndex>=0)state.invoices[existingIndex]=inv;
+  else state.invoices.unshift(inv);
   save();
+  const updated=existingIndex>=0;
+  editingInvoiceId=null;
   draft={lines:[]};
-  toast('Invoice saved successfully');
+  toast(updated?'Invoice updated successfully':'Invoice saved successfully');
   renderDashboard();
   showView('invoices');
 };
