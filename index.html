@@ -154,7 +154,12 @@
             </div>
             <div class="form-grid">
               <label>Invoice number<input id="invoiceNo" readonly></label>
-              <label>Invoice date<input type="date" id="invoiceDate"></label>
+              <label>Bill Date *<input type="date" id="invoiceDate" required></label>
+              <div class="billing-period wide">
+                <label>Billing Period Start *<input type="date" id="billingPeriodStart" required></label>
+                <span>to</span>
+                <label>Billing Period End *<input type="date" id="billingPeriodEnd" required></label>
+              </div>
               <label class="wide">Customer<select id="invoiceCustomer"></select></label>
               <label>Place of supply<input id="placeSupply" placeholder="e.g. Haryana / Delhi"></label>
               <label>Payment status<select id="paymentStatus">
