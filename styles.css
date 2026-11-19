@@ -5,4 +5,5 @@
 @media print{.sidebar,.topbar,#toast,.summary-panel button{display:none!important}.app-shell{display:block}main{padding:0}.view{display:none!important}#invoice.view{display:block!important}.invoice-grid{display:block}.panel{box-shadow:none;border:0}.form-panel{padding:0}.summary-panel{display:block;position:static;margin-top:10px}.summary-panel .panel-head,.privacy-note{display:none}.invoice-grid input,.invoice-grid select,.invoice-grid textarea{border:0;padding:4px;background:white;appearance:none}.remove-line,.add-line{display:none}.section-title>span{border:1px solid #aaa;background:white}}
 .billing-period{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end}.billing-period>span{padding-bottom:12px;color:var(--muted);font-size:12px;font-weight:700}
 .line-item .description-label{margin-top:9px}
+.invoice-actions{display:flex;flex-wrap:wrap;gap:6px;min-width:210px}.mini-btn.danger{border-color:#efc7c0;background:#fff7f5;color:#a33b2b}
 @media(max-width:560px){.billing-period{grid-template-columns:1fr}.billing-period>span{padding:0;text-align:center}}

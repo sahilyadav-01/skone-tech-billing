@@ -179,6 +179,9 @@ function initInvoice(){
   $('#invoiceDate').value=today;
   $('#billingPeriodStart').value=today;
   $('#billingPeriodEnd').value=today;
+  $('#placeSupply').value='';
+  $('#paymentStatus').value='Pending';
+  $('#invoiceNotes').value='';
   syncBillingPeriodBounds();
   $('#invoiceCustomer').innerHTML=state.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   const firstItem=state.items[0];
@@ -345,7 +348,7 @@ function renderInvoices(filter=''){
   h.className=list.length?'':'empty-state';
   h.innerHTML=list.length?`<table class="invoice-table"><thead><tr><th>INVOICE</th><th>CUSTOMER</th><th>DATE</th><th>AMOUNT</th><th>STATUS</th><th></th></tr></thead><tbody>${list.map(i=>{
     const c=state.customers.find(x=>x.id===i.customerId);
-    return `<tr><td><b>${i.number}</b></td><td>${esc(c?.name||'Unknown')}</td><td>${new Date(i.date+'T00:00:00').toLocaleDateString('en-IN')}</td><td><b>${money(i.totals.total)}</b></td><td>${badge(i.status)}</td><td><button class="mini-btn" data-status="${i.id}">Mark paid</button> <button class="mini-btn" data-print="${i.id}">Print</button></td></tr>`;
+    return `<tr><td><b>${i.number}</b></td><td>${esc(c?.name||'Unknown')}</td><td>${new Date(i.date+'T00:00:00').toLocaleDateString('en-IN')}</td><td><b>${money(i.totals.total)}</b></td><td>${badge(i.status)}</td><td><div class="invoice-actions"><button class="mini-btn" data-status="${i.id}">Mark paid</button><button class="mini-btn" data-edit-invoice="${i.id}">Edit</button><button class="mini-btn" data-print="${i.id}">Print</button><button class="mini-btn danger" data-delete-invoice="${i.id}">Delete</button></div></td></tr>`;
   }).join('')}</tbody></table>`:'<b>No matching invoices</b><span>Create an invoice for this company to get started.</span>';
   $$('[data-status]').forEach(b=>b.onclick=()=>{
     const i=state.invoices.find(x=>x.id===b.dataset.status);
@@ -355,10 +358,48 @@ function renderInvoices(filter=''){
     renderDashboard();
     toast('Marked as paid');
   });
+  $$('[data-edit-invoice]').forEach(b=>b.onclick=()=>editInvoice(b.dataset.editInvoice));
+  $$('[data-delete-invoice]').forEach(b=>b.onclick=()=>deleteInvoice(b.dataset.deleteInvoice));
   $$('[data-print]').forEach(b=>b.onclick=()=>printInvoice(b.dataset.print));
 }
 
 $('#invoiceSearch').oninput=e=>renderInvoices(e.target.value);
+
+function editInvoice(id){
+  const invoice=state.invoices.find(item=>item.id===id);
+  if(!invoice)return toast('Invoice not found');
+  showView('invoice');
+  editingInvoiceId=id;
+  $('#invoiceNo').value=invoice.number;
+  $('#invoiceDate').value=invoice.date||todayInputValue();
+  $('#billingPeriodStart').value=invoice.billingPeriodStart||invoice.date||todayInputValue();
+  $('#billingPeriodEnd').value=invoice.billingPeriodEnd||invoice.billingPeriodStart||invoice.date||todayInputValue();
+  $('#invoiceCustomer').value=invoice.customerId||'';
+  $('#placeSupply').value=invoice.place||'';
+  $('#paymentStatus').value=invoice.status||'Pending';
+  $('#invoiceNotes').value=invoice.notes||'';
+  draft={
+    lines:(invoice.lines||[]).map(line=>({...line,id:line.id||crypto.randomUUID()})),
+    totals:{...(invoice.totals||{})}
+  };
+  if(!draft.lines.length)draft.lines=[{id:crypto.randomUUID(),itemId:'',description:'Item / Service',qty:1,rate:0,tax:18,discount:0}];
+  syncBillingPeriodBounds();
+  renderLines();
+  $('#saveInvoice').textContent='Update invoice';
+  $('#eyebrow').textContent='EDIT';
+  $('#pageTitle').textContent=`Edit ${invoice.number}`;
+}
+
+function deleteInvoice(id){
+  const invoice=state.invoices.find(item=>item.id===id);
+  if(!invoice)return toast('Invoice not found');
+  if(!window.confirm(`Delete invoice ${invoice.number}? This cannot be undone.`))return;
+  state.invoices=state.invoices.filter(item=>item.id!==id);
+  save();
+  renderInvoices($('#invoiceSearch').value);
+  renderDashboard();
+  toast('Invoice deleted');
+}
 
 function printInvoice(id){
   const i=state.invoices.find(x=>x.id===id),c=state.customers.find(x=>x.id===i.customerId),w=window.open('','_blank');
