@@ -97,10 +97,47 @@ function invoiceNumber(){
   return `${prefix}-${new Date().getFullYear()}-${String(state.invoices.length+1).padStart(4,'0')}`;
 }
 
+function todayInputValue(){
+  const now=new Date();
+  now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+  return now.toISOString().slice(0,10);
+}
+
+function displayDate(value){
+  if(!value)return '-';
+  const date=new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime())?'-':date.toLocaleDateString('en-GB');
+}
+
+function invoiceBillingPeriod(invoice){
+  const start=invoice.billingPeriodStart||invoice.date;
+  const end=invoice.billingPeriodEnd||start;
+  return `${displayDate(start)} to ${displayDate(end)}`;
+}
+
+function validateBillingDates(){
+  const billDate=$('#invoiceDate').value;
+  const start=$('#billingPeriodStart').value;
+  const end=$('#billingPeriodEnd').value;
+  if(!billDate||!start||!end){toast('Bill Date and Billing Period are required');return false}
+  if(start>end){toast('Billing Period End cannot be before Start');return false}
+  return true;
+}
+
+function syncBillingPeriodBounds(){
+  const start=$('#billingPeriodStart'),end=$('#billingPeriodEnd');
+  end.min=start.value;
+  start.max=end.value;
+}
+
 function initInvoice(){
   draft={lines:[]};
   $('#invoiceNo').value=invoiceNumber();
-  $('#invoiceDate').value=new Date().toISOString().slice(0,10);
+  const today=todayInputValue();
+  $('#invoiceDate').value=today;
+  $('#billingPeriodStart').value=today;
+  $('#billingPeriodEnd').value=today;
+  syncBillingPeriodBounds();
   $('#invoiceCustomer').innerHTML=state.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   const firstItem=state.items[0];
   draft.lines=[{
@@ -163,12 +200,15 @@ $('#addLine').onclick=()=>{
 };
 
 $('#saveInvoice').onclick=()=>{
+  if(!validateBillingDates())return;
   if(!draft.lines.some(l=>l.rate>0))return toast('Add an item with a price');
   const custId=$('#invoiceCustomer').value||state.customers[0]?.id;
   const inv={
     id:crypto.randomUUID(),
     number:$('#invoiceNo').value,
     date:$('#invoiceDate').value,
+    billingPeriodStart:$('#billingPeriodStart').value,
+    billingPeriodEnd:$('#billingPeriodEnd').value,
     customerId:custId,
     place:$('#placeSupply').value.trim(),
     status:$('#paymentStatus').value,
@@ -184,7 +224,17 @@ $('#saveInvoice').onclick=()=>{
   showView('invoices');
 };
 
-$('#printDraft').onclick=()=>window.print();
+$('#billingPeriodStart').onchange=()=>{
+  const start=$('#billingPeriodStart').value,end=$('#billingPeriodEnd');
+  if(start&&(!end.value||end.value<start))end.value=start;
+  syncBillingPeriodBounds();
+};
+$('#billingPeriodEnd').onchange=syncBillingPeriodBounds;
+
+$('#printDraft').onclick=()=>{
+  if(!validateBillingDates())return;
+  window.print();
+};
 
 $('#customerForm').onsubmit=e=>{
   e.preventDefault();
@@ -383,6 +433,8 @@ function currentDraftInvoice(){
   return {
     number:$('#invoiceNo').value,
     date:$('#invoiceDate').value,
+    billingPeriodStart:$('#billingPeriodStart').value,
+    billingPeriodEnd:$('#billingPeriodEnd').value,
     place:$('#placeSupply').value.trim(),
     status:$('#paymentStatus').value,
     notes:$('#invoiceNotes').value,
@@ -414,9 +466,9 @@ async function downloadInvoicePdf(invoice,customer){
   const bar=title=>{doc.setFillColor(...soft);doc.setDrawColor(...line);doc.rect(14,y,182,8,'FD');doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(title,17,y+5.3);y+=8};
   const wrapped=(text,width)=>doc.splitTextToSize(String(text||''),width);
   bar('PROVIDER DETAILS');doc.setDrawColor(...line);doc.rect(14,y,182,25);doc.line(126,y,126,y+25);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(biz.legal_name||biz.name,17,y+6);doc.setFont('helvetica','normal');doc.text(wrapped(biz.address?`ADDRESS: ${biz.address}`:'ADDRESS: -',105),17,y+11);doc.text(`GSTIN/UIN: ${biz.gstin||'-'}`,17,y+21);doc.text(`CONTACT: ${biz.owner||biz.name}`,129,y+7);doc.text(`PH: ${biz.phone||'-'}`,129,y+13);if(biz.email)doc.text(`EMAIL: ${biz.email}`,129,y+19);y+=30;
-  doc.setFillColor(...soft);doc.rect(14,y,82,8,'F');doc.rect(96,y,100,8,'F');doc.rect(14,y,182,47);doc.line(96,y,96,y+47);doc.line(14,y+8,196,y+8);doc.setFont('helvetica','bold');doc.text('INVOICE & PAYMENT METADATA',17,y+5.3);doc.text('BILL TO (CUSTOMER DETAILS)',99,y+5.3);doc.setFont('helvetica','normal');doc.text(`Invoice No.: ${invoice.number}`,17,y+14);doc.text(`Dated: ${new Date(invoice.date+'T00:00:00').toLocaleDateString('en-GB')}`,17,y+20);doc.text('Payment Terms: Due upon receipt',17,y+26);doc.text(`Place of Supply: ${invoice.place||'-'}`,17,y+32);doc.setFont('helvetica','bold');doc.text(`Total Amount Due: INR ${Number(invoice.totals.total).toFixed(2)}`,17,y+41);doc.text(wrapped(`Bill To: ${customer?.name||'Customer'}`,92),99,y+14);doc.setFont('helvetica','normal');doc.text(wrapped(`Address: ${customer?.address||'-'}`,92),99,y+20);doc.text(`GSTIN: ${customer?.gstin||'-'}`,99,y+33);doc.text(`Phone: ${customer?.phone||'-'}`,99,y+39);y+=52;
+  doc.setFillColor(...soft);doc.rect(14,y,82,8,'F');doc.rect(96,y,100,8,'F');doc.rect(14,y,182,53);doc.line(96,y,96,y+53);doc.line(14,y+8,196,y+8);doc.setFont('helvetica','bold');doc.text('INVOICE & PAYMENT METADATA',17,y+5.3);doc.text('BILL TO (CUSTOMER DETAILS)',99,y+5.3);doc.setFont('helvetica','normal');doc.text(`Invoice No.: ${invoice.number}`,17,y+14);doc.text(`Bill Date: ${displayDate(invoice.date)}`,17,y+20);doc.text(`Billing Period: ${invoiceBillingPeriod(invoice)}`,17,y+26);doc.text('Payment Terms: Due upon receipt',17,y+32);doc.text(`Place of Supply: ${invoice.place||'-'}`,17,y+38);doc.setFont('helvetica','bold');doc.text(`Total Amount Due: INR ${Number(invoice.totals.total).toFixed(2)}`,17,y+47);doc.text(wrapped(`Bill To: ${customer?.name||'Customer'}`,92),99,y+14);doc.setFont('helvetica','normal');doc.text(wrapped(`Address: ${customer?.address||'-'}`,92),99,y+20);doc.text(`GSTIN: ${customer?.gstin||'-'}`,99,y+33);doc.text(`Phone: ${customer?.phone||'-'}`,99,y+39);y+=58;
   const cols=[14,40,126,144,169,196];doc.setFillColor(...ink);doc.rect(14,y,182,9,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('Date',17,y+6);doc.text('Description',43,y+6);doc.text('Qty',135,y+6,{align:'center'});doc.text('Rate',166,y+6,{align:'right'});doc.text('Amount',193,y+6,{align:'right'});y+=9;doc.setTextColor(...ink);doc.setFont('helvetica','normal');
-  invoice.lines.forEach((item,index)=>{const calc=lineCalc(item),desc=wrapped(item.description||'Item / service',80),h=Math.max(13,desc.length*4.2+5);doc.setDrawColor(...line);doc.rect(14,y,182,h);cols.slice(1,-1).forEach(x=>doc.line(x,y,x,y+h));if(index===0)doc.text(new Date(invoice.date+'T00:00:00').toLocaleDateString('en-GB'),17,y+6);doc.setFont('helvetica','bold');doc.text(desc,43,y+6);doc.setFont('helvetica','normal');doc.text(String(item.qty),135,y+6,{align:'center'});doc.text(Number(item.rate).toFixed(2),166,y+6,{align:'right'});doc.text(`INR ${calc.base.toFixed(2)}`,193,y+6,{align:'right'});doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`GST ${item.tax}%`,43,y+h-3);doc.setFontSize(8);doc.setTextColor(...ink);y+=h});
+  invoice.lines.forEach((item,index)=>{const calc=lineCalc(item),desc=wrapped(item.description||'Item / service',80),h=Math.max(13,desc.length*4.2+5);doc.setDrawColor(...line);doc.rect(14,y,182,h);cols.slice(1,-1).forEach(x=>doc.line(x,y,x,y+h));if(index===0)doc.text(wrapped(invoiceBillingPeriod(invoice),20),17,y+6);doc.setFont('helvetica','bold');doc.text(desc,43,y+6);doc.setFont('helvetica','normal');doc.text(String(item.qty),135,y+6,{align:'center'});doc.text(Number(item.rate).toFixed(2),166,y+6,{align:'right'});doc.text(`INR ${calc.base.toFixed(2)}`,193,y+6,{align:'right'});doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`GST ${item.tax}%`,43,y+h-3);doc.setFontSize(8);doc.setTextColor(...ink);y+=h});
   const summary=[['Subtotal',invoice.totals.subtotal],['Discount',-invoice.totals.discount],['GST',invoice.totals.tax]];summary.forEach(([label,value])=>{doc.setDrawColor(...line);doc.rect(126,y,70,7);doc.text(label,129,y+4.8);doc.text(`INR ${Number(value).toFixed(2)}`,193,y+4.8,{align:'right'});y+=7});doc.setFillColor(...soft);doc.setDrawColor(...ink);doc.rect(14,y,182,10,'FD');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Total Amount Due',43,y+6.7);doc.text(`INR ${Number(invoice.totals.total).toFixed(2)}`,193,y+6.7,{align:'right'});y+=15;
   doc.setFontSize(8);
   if(biz.bank||biz.account){
@@ -432,6 +484,7 @@ async function downloadInvoicePdf(invoice,customer){
 }
 
 $('#downloadDraft').onclick=()=>{
+  if(!validateBillingDates())return;
   const invoice=currentDraftInvoice(),customer=state.customers.find(x=>x.id===$('#invoiceCustomer').value);
   downloadInvoicePdf(invoice,customer);
 };
