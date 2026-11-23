@@ -2,7 +2,7 @@
 
 A lightweight, modern browser-based billing and GST invoicing application designed for businesses, computer repair centers, IT support providers, product sellers, and freelance services.
 
-**Author:** Sahil Yadav
+**Author:** Sahil Yadav<br>
 **Copyright:** © 2026 SK One Tech Support. All rights reserved.
 
 ---
@@ -22,10 +22,21 @@ A lightweight, modern browser-based billing and GST invoicing application design
   - Branded PDF downloads generated client-side via jsPDF.
   - Formatted Print Preview ready for direct thermal or A4 printing.
 
-- **Strict Data Isolation:**
+- **Customer Management & Quick Editing:**
+  - Add new clients with contact phone numbers, GSTIN, and billing addresses.
+  - **Inline Editing:** 1-click **Edit** button auto-populates the form for rapid updates.
+  - Form state management with "Cancel edit" support and active row highlights.
+  - Live synchronization across invoice creation dropdowns.
+
+- **Strict Multi-Tenant Data Isolation:**
   - Complete data privacy: customers, items/catalogue, invoices, and business profiles are 100% isolated per company workspace.
   - Database-level isolation enforced through Supabase Row Level Security (RLS).
-  - Zero data bleed between separate accounts.
+  - Zero data bleed or merging between separate business accounts.
+
+- **Privacy Policy & Legal Trust:**
+  - Integrated **Privacy Policy & Terms** modal dialog accessible from the login page and workspace.
+  - Dedicated in-dashboard **Legal & Trust** view (`#privacy`) detailing data protection standards.
+  - Standalone documentation in [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md).
 
 - **Fast Authentication & Offline Access:**
   - Email/password authentication with cloud workspace synchronization.
@@ -33,10 +44,10 @@ A lightweight, modern browser-based billing and GST invoicing application design
   - **Instant Local/Offline Mode:** 1-click access without cloud dependencies when offline or testing.
   - Resilient local browser caching (`localStorage`) alongside Supabase cloud sync.
 
-- **Catalogue & Contact Directory:**
-  - Reusable Items & Services price list.
-  - Customer contact and GSTIN directory for rapid invoice creation.
-  - Revenue analytics dashboard with monthly turnover and payment status tracking.
+- **Modern Light Green Mint UI:**
+  - Clean, fresh mint & emerald color palette tailored for high-contrast brand logo display.
+  - Fully responsive design for mobile, tablet, and desktop viewports.
+  - Balanced typography with zero orphan punctuation.
 
 ---
 
@@ -51,7 +62,7 @@ skone-tech-billing/
 ├── supabase/
 │   ├── schema.sql                  # Main database schema with Row Level Security (RLS)
 │   └── multi_company_migration.sql # Migration script for company profiles & multi-tenancy
-├── app.js                          # Core billing logic, calculations, PDF generation, UI views
+├── app.js                          # Core billing logic, calculations, customer CRUD, PDF export
 ├── auth.js                         # Authentication, workspace provisioning, and session manager
 ├── auth.css                        # Full-screen responsive authentication styling
 ├── company.css                     # Company profile and workspace settings styling
@@ -104,6 +115,7 @@ npx serve -l 4173
    };
    ```
 5. In **Authentication > URL Configuration**, add your local address (`http://127.0.0.1:4173`) and production domain to **Redirect URLs**.
+6. *(Optional)* To allow instant user signups without email verification, disable **Confirm email** under **Authentication > Providers > Email**.
 
 ---
 
@@ -118,9 +130,21 @@ npx serve -l 4173
 
 ---
 
+## 👥 Managing Customers
+
+1. Navigate to **Customers** from the left navigation sidebar.
+2. **Add Customer:** Fill in Name, Phone, GSTIN (optional), and Billing Address, then click **Save customer**.
+3. **Edit Customer:**
+   - Click the green **Edit** button on any customer card.
+   - The form will auto-fill with the customer's current details and switch to edit mode.
+   - Modify the necessary fields and click **Update customer** (or click **✕ Cancel edit** to discard).
+4. **Delete Customer:** Click the **Delete** button to remove a contact (maintains a minimum of 1 customer).
+
+---
+
 ## 🧾 Creating an Invoice
 
-1. Go to **Customers** and add a client (or use the default *Walk-in Customer*).
+1. Go to **Customers** and add or select a client (or use the default *Walk-in Customer*).
 2. Go to **Items & Services** to add frequently billed repairs, parts, or hourly services.
 3. Click **＋ New Invoice**:
    - Select the customer and date.
