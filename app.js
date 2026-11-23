@@ -285,31 +285,121 @@ $('#printDraft').onclick=()=>{
   window.print();
 };
 
+function resetCustomerForm(){
+  const form=$('#customerForm');
+  if(!form)return;
+  form.reset();
+  const editId=$('#editCustomerId');
+  if(editId)editId.value='';
+  const title=$('#customerFormTitle');
+  if(title)title.textContent='Add customer';
+  const subtitle=$('#customerFormSubtitle');
+  if(subtitle)subtitle.textContent='Save details for faster invoicing.';
+  const btn=$('#saveCustomerBtn');
+  if(btn)btn.textContent='Save customer';
+  const cancelBtn=$('#cancelCustomerEditBtn');
+  if(cancelBtn)cancelBtn.style.display='none';
+  $$('#customerList .list-row').forEach(r=>{
+    r.style.background='';
+    r.style.borderRadius='';
+  });
+}
+
+function editCustomer(id){
+  const c=state.customers.find(x=>x.id===id);
+  if(!c)return;
+  $('#editCustomerId').value=c.id;
+  $('#customerName').value=c.name||'';
+  $('#customerPhone').value=c.phone||'';
+  $('#customerGstin').value=c.gstin||'';
+  $('#customerAddress').value=c.address||'';
+  $('#customerFormTitle').textContent='Edit customer';
+  $('#customerFormSubtitle').textContent=`Editing details for ${c.name}`;
+  $('#saveCustomerBtn').textContent='Update customer';
+  const cancelBtn=$('#cancelCustomerEditBtn');
+  if(cancelBtn)cancelBtn.style.display='inline-block';
+  renderCustomers();
+  $('#customerForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+  $('#customerName').focus();
+}
+
 $('#customerForm').onsubmit=e=>{
   e.preventDefault();
-  state.customers.push({
-    id:crypto.randomUUID(),
-    name:$('#customerName').value.trim(),
-    phone:$('#customerPhone').value.trim(),
-    gstin:$('#customerGstin').value.trim().toUpperCase(),
-    address:$('#customerAddress').value.trim()
-  });
+  const editId=$('#editCustomerId')?.value;
+  const name=$('#customerName').value.trim();
+  const phone=$('#customerPhone').value.trim();
+  const gstin=$('#customerGstin').value.trim().toUpperCase();
+  const address=$('#customerAddress').value.trim();
+
+  if(!name)return toast('Customer name is required');
+
+  if(editId){
+    const c=state.customers.find(x=>x.id===editId);
+    if(c){
+      c.name=name;
+      c.phone=phone;
+      c.gstin=gstin;
+      c.address=address;
+      toast('Customer updated successfully');
+    }
+  }else{
+    state.customers.push({
+      id:crypto.randomUUID(),
+      name,
+      phone,
+      gstin,
+      address
+    });
+    toast('Customer saved');
+  }
   save();
-  e.target.reset();
+  resetCustomerForm();
   renderCustomers();
   renderDashboard();
-  toast('Customer saved');
 };
+
+const cancelCustBtn=$('#cancelCustomerEditBtn');
+if(cancelCustBtn)cancelCustBtn.onclick=()=>resetCustomerForm();
 
 function renderCustomers(){
   const h=$('#customerList');
-  h.innerHTML=state.customers.length?state.customers.map(c=>`<div class="list-row"><div><strong>${esc(c.name)}</strong><small>${esc(c.phone||c.gstin||'No contact details')}</small></div><div class="row-actions"><button class="mini-btn" data-del-customer="${c.id}">Delete</button></div></div>`).join(''):'<div class="empty-state">No customers saved</div>';
+  if(!h)return;
+  const activeEditId=$('#editCustomerId')?.value;
+  h.innerHTML=state.customers.length?state.customers.map(c=>{
+    const details=[c.phone, c.gstin, c.address].filter(Boolean).join(' • ') || 'No contact details';
+    const isEditing=activeEditId===c.id;
+    return `<div class="list-row" style="${isEditing?'background:#ecfdf5;border-radius:10px;padding-left:12px;padding-right:12px;border:1px solid #a7f3d0;':''}">
+      <div style="min-width:0;flex:1;padding-right:12px">
+        <strong>${esc(c.name)}${isEditing?' <span class="badge paid" style="font-size:9px;padding:2px 7px">Editing</span>':''}</strong>
+        <small style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(details)}</small>
+      </div>
+      <div class="row-actions">
+        <button type="button" class="mini-btn edit-btn" data-edit-customer="${c.id}" title="Edit customer details">Edit</button>
+        <button type="button" class="mini-btn danger" data-del-customer="${c.id}" title="Delete customer">Delete</button>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty-state">No customers saved</div>';
+
+  $$('[data-edit-customer]').forEach(b=>b.onclick=()=>editCustomer(b.dataset.editCustomer));
+
   $$('[data-del-customer]').forEach(b=>b.onclick=()=>{
     if(state.customers.length===1)return toast('Keep at least one customer');
-    state.customers=state.customers.filter(c=>c.id!==b.dataset.delCustomer);
+    const delId=b.dataset.delCustomer;
+    if($('#editCustomerId')?.value===delId){
+      resetCustomerForm();
+    }
+    state.customers=state.customers.filter(c=>c.id!==delId);
     save();
     renderCustomers();
+    renderDashboard();
+    toast('Customer deleted');
   });
+
+  if($('#invoiceCustomer')){
+    const currentVal=$('#invoiceCustomer').value;
+    $('#invoiceCustomer').innerHTML=state.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    if(currentVal)$('#invoiceCustomer').value=currentVal;
+  }
 }
 
 $('#itemForm').onsubmit=e=>{

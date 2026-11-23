@@ -220,12 +220,17 @@
       <section class="view" id="customers">
         <div class="split-layout">
           <form class="panel form-card" id="customerForm">
-            <h3>Add customer</h3>
-            <p>Save details for faster invoicing.</p><label>Name<input id="customerName" required
-                placeholder="Customer / company name"></label><label>Phone<input id="customerPhone"
-                placeholder="+91 98765 43210"></label><label>GSTIN<input id="customerGstin"
-                placeholder="Optional GST number"></label><label>Address<textarea id="customerAddress" rows="3"
-                placeholder="Billing address"></textarea></label><button class="primary full">Save customer</button>
+            <input type="hidden" id="editCustomerId" value="">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+              <h3 id="customerFormTitle" style="margin:0">Add customer</h3>
+              <button type="button" class="mini-btn" id="cancelCustomerEditBtn" style="display:none">✕ Cancel edit</button>
+            </div>
+            <p id="customerFormSubtitle" style="margin:4px 0 12px;color:var(--muted);font-size:12px">Save details for faster invoicing.</p>
+            <label>Name<input id="customerName" required placeholder="Customer / company name"></label>
+            <label>Phone<input id="customerPhone" placeholder="+91 98765 43210"></label>
+            <label>GSTIN<input id="customerGstin" placeholder="Optional GST number"></label>
+            <label>Address<textarea id="customerAddress" rows="3" placeholder="Billing address"></textarea></label>
+            <button class="primary full" id="saveCustomerBtn">Save customer</button>
           </form>
           <div class="panel">
             <div class="panel-head">
