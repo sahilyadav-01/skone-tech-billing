@@ -16,17 +16,27 @@ A lightweight, modern browser-based billing and GST invoicing application design
   - Custom invoice prefix configuration (e.g., `INV`, `SK`, `BILL`).
 
 - **Dynamic GST Invoicing:**
-  - Live itemized invoicing with quantity, unit rate, percentage discount, and GST rate (0%, 5%, 12%, 18%, 28%).
+  - Live itemized invoicing with custom descriptions, quantity, unit rate, percentage discount, and GST rate (0%, 5%, 12%, 18%, 28%).
   - Live calculations for Subtotal, Discount, GST Tax, and Grand Total.
   - Auto-generated number-to-words currency breakdown (Indian Rupees / Lakhs / Crores).
   - Branded PDF downloads generated client-side via jsPDF.
   - Formatted Print Preview ready for direct thermal or A4 printing.
+
+- **Invoice Management & History (CRUD):**
+  - **Live Search & Filter:** Instant search by invoice number or customer name.
+  - **Edit Invoice:** Reopen any saved bill in the invoice builder, adjust line items, rates, or customers, and update records seamlessly.
+  - **Delete Invoice:** Remove cancelled or void bills with instant dashboard revenue recalculation.
+  - **Quick Status Toggle:** 1-click "Mark as paid" directly from the invoice ledger.
 
 - **Customer Management & Quick Editing:**
   - Add new clients with contact phone numbers, GSTIN, and billing addresses.
   - **Inline Editing:** 1-click **Edit** button auto-populates the form for rapid updates.
   - Form state management with "Cancel edit" support and active row highlights.
   - Live synchronization across invoice creation dropdowns.
+
+- **Catalogue & Price List:**
+  - Save recurring products and service rates with default GST slabs.
+  - Fast item lookup and 1-click insertion into invoices.
 
 - **Strict Multi-Tenant Data Isolation:**
   - Complete data privacy: customers, items/catalogue, invoices, and business profiles are 100% isolated per company workspace.
@@ -62,7 +72,10 @@ skone-tech-billing/
 ├── supabase/
 │   ├── schema.sql                  # Main database schema with Row Level Security (RLS)
 │   └── multi_company_migration.sql # Migration script for company profiles & multi-tenancy
-├── app.js                          # Core billing logic, calculations, customer CRUD, PDF export
+├── tools/
+│   ├── build_invoice_pdf.py        # Python CLI utility for generating invoices
+│   └── inspect_invoice.py          # Script for verifying invoice calculations & layout
+├── app.js                          # Core billing logic, calculations, invoice & customer CRUD, PDF export
 ├── auth.js                         # Authentication, workspace provisioning, and session manager
 ├── auth.css                        # Full-screen responsive authentication styling
 ├── company.css                     # Company profile and workspace settings styling
@@ -71,6 +84,7 @@ skone-tech-billing/
 ├── styles.css                      # Base application design system and invoice layout
 ├── supabase-config.js              # Supabase URL & anon key configuration
 ├── vercel.json                     # Vercel deployment configuration
+├── .env.example                    # Template for environment variables
 ├── index.html                      # Single-page application entrypoint
 ├── PRIVACY_POLICY.md               # Complete multi-tenant privacy & data protection policy
 ├── README.md                       # Documentation & setup guide
@@ -142,16 +156,28 @@ npx serve -l 4173
 
 ---
 
-## 🧾 Creating an Invoice
+## 🧾 Creating & Managing Invoices
 
-1. Go to **Customers** and add or select a client (or use the default *Walk-in Customer*).
-2. Go to **Items & Services** to add frequently billed repairs, parts, or hourly services.
-3. Click **＋ New Invoice**:
-   - Select the customer and date.
-   - Choose or add items, adjust quantity, rate, discount, and tax.
-   - Review live totals on the summary panel.
-4. Click **Download PDF** to export a high-resolution, print-ready GST tax invoice.
-5. Click **Save invoice** to record it in your invoice history and dashboard analytics.
+### 1. Creating a New Invoice
+1. Go to **＋ New Invoice** from the sidebar or top bar.
+2. Select the customer from the dropdown and set the invoice date.
+3. Add line items:
+   - Select an existing catalog item or type a custom description.
+   - Adjust quantity, rate (₹), discount (%), and GST slab.
+   - Add multiple lines using **＋ Add item**.
+4. Review live totals on the summary panel (Subtotal, Tax breakdown, and Grand Total).
+5. Click **Download PDF** for client export or **Save invoice** to record it.
+
+### 2. Editing an Existing Invoice
+1. Go to **Invoices** from the sidebar.
+2. Find the invoice using the real-time search box.
+3. Click the **Edit** button to reopen it in the invoice builder.
+4. Update lines, prices, or dates, then click **Update invoice** to save changes.
+
+### 3. Printing & Status Tracking
+- Click **Print** to open the browser print dialog formatted for A4 or thermal receipt printers.
+- Click **Mark paid** to update payment status and dashboard collections.
+- Click **Delete** to remove obsolete bills.
 
 ---
 
