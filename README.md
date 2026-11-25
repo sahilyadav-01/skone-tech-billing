@@ -197,5 +197,6 @@ npx serve -l 4173
 
 ## 📄 License
 
-This software and its source code are proprietary. See [LICENSE](LICENSE) for complete terms.
-Copyright © 2026 SK One Tech Support. Developed by **Sahil Yadav**.
+This software and its source code are proprietary. See [LICENSE](LICENSE) for complete terms.<br>
+Copyright © 2026 SK One Tech Support. Developed by **Sahil Yadav**.<br>
+Contact: [skonetechsupport@gmail.com](mailto:skonetechsupport@gmail.com)

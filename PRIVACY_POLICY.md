@@ -109,6 +109,6 @@ This Privacy Policy is designed to adhere to global data protection principles, 
 If you have questions, feedback, security disclosures, or data requests regarding this Privacy Policy, please contact our support team:
 
 - **Entity:** SK ONE TECH SUPPORT
-- **Contact Email:** `support@skonetech.com`
+- **Contact Email:** `skonetechsupport@gmail.com`
 - **Application:** SK One Tech Billing Platform
 - **Lead Developer:** Sahil Yadav
