@@ -3,7 +3,8 @@
 A lightweight, modern browser-based billing and GST invoicing application designed for businesses, computer repair centers, IT support providers, product sellers, and freelance services.
 
 **Author:** Sahil Yadav<br>
-**Copyright:** © 2026 SK One Tech Support. All rights reserved.
+**Copyright:** © 2026 SK One Tech Support. All rights reserved.<br>
+**Last Updated:** November 25, 2026
 
 ---
 
@@ -22,7 +23,7 @@ A lightweight, modern browser-based billing and GST invoicing application design
   - Branded PDF downloads generated client-side via jsPDF.
   - Formatted Print Preview ready for direct thermal or A4 printing.
 
-- **Invoice Management & History (CRUD):**
+- **Invoice Management & History (Full CRUD):**
   - **Live Search & Filter:** Instant search by invoice number or customer name.
   - **Edit Invoice:** Reopen any saved bill in the invoice builder, adjust line items, rates, or customers, and update records seamlessly.
   - **Delete Invoice:** Remove cancelled or void bills with instant dashboard revenue recalculation.
@@ -46,7 +47,7 @@ A lightweight, modern browser-based billing and GST invoicing application design
 - **Privacy Policy & Legal Trust:**
   - Integrated **Privacy Policy & Terms** modal dialog accessible from the login page and workspace.
   - Dedicated in-dashboard **Legal & Trust** view (`#privacy`) detailing data protection standards.
-  - Standalone documentation in [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md).
+  - Comprehensive documentation in [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md).
 
 - **Fast Authentication & Offline Access:**
   - Email/password authentication with cloud workspace synchronization.
